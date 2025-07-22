@@ -1,10 +1,9 @@
 import type { MetaFunction } from "@remix-run/node";
-import Navbar from "../Frontend/common/navbar";
-import IndexHero from "../Frontend/components/LandingPage/section1";
+import LoginComponent from "~/Frontend/auth/login";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "MenTora | Homepage" },
+    { title: "MenTora | Login" },
     { name: "Greetings", content: "Welcome to MenTora!" },
   ];
 };
@@ -12,8 +11,7 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   return (
     <>
-      <Navbar />
-      <IndexHero />
+      <LoginComponent />
     </>
   );
 }

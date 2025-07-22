@@ -8,15 +8,15 @@ interface SlideContent {
 const heroContent: SlideContent[] = [
   {
     id: 1,
-    image: "MQ1.jpg",
+    image: "MQ1.png",
   },
   {
     id: 2,
-    image: "MQ2.jpg",
+    image: "MQ2.png",
   },
   {
     id: 3,
-    image: "MQ3.jpg",
+    image: "MQ3.png",
   },
 ];
 
