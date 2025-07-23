@@ -89,7 +89,7 @@ export default function LoginComponent({
               MenTora
             </h2>
             <p className="text-gray-600 mt-2">
-              Masuk untuk melanjutkan perjalanan kesehatan mental Anda.
+              Sudah sejauh ini, yuk teruskan langkah kecilmu bersama Mentora.
             </p>
           </div>
           
@@ -169,23 +169,28 @@ export default function LoginComponent({
             </div>
             
             <div>
-              <button
+                <button
                 type="submit"
                 disabled={isLoading}
                 className="w-full px-6 py-3 text-white bg-gradient-to-r from-sky-500 to-purple-500 rounded-lg hover:from-sky-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
-              >
+                onClick={() => {
+                  if (!isLoading) {
+                  window.location.href = "/dashboard";
+                  }
+                }}
+                >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Memproses...
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Memproses...
                   </div>
                 ) : (
                   "Masuk"
                 )}
-              </button>
+                </button>
             </div>
             
             <div className="text-center">
@@ -193,7 +198,7 @@ export default function LoginComponent({
                 Belum memiliki akun?{" "}
                 <button
                   type="button"
-                  onClick={onRegister}
+                  onClick={() => window.location.href = "/register"}
                   className="font-medium text-purple-600 hover:text-purple-800 transition-colors"
                 >
                   Daftar sekarang
@@ -212,14 +217,14 @@ export default function LoginComponent({
                 className="h-24 w-24 mx-auto mb-6 opacity-90 drop-shadow-lg"
               />
               <h3 className="mt-6 text-2xl font-bold text-white drop-shadow-md">
-                Hi, Selamat Datang User!
+                Hi, Selamat Datang di Mentora!
               </h3>
             </div>
           </div>
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fade-slide-right {
           0% {
             opacity: 0;

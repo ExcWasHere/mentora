@@ -8,15 +8,15 @@ interface SlideContent {
 const heroContent: SlideContent[] = [
   {
     id: 1,
-    image: "MQ1.png",
-  },
-  {
-    id: 2,
     image: "MQ2.png",
   },
   {
-    id: 3,
+    id: 2,
     image: "MQ3.png",
+  },
+  {
+    id: 3,
+    image: "MQ1.png",
   },
 ];
 
@@ -98,7 +98,7 @@ export default function IndexHero() {
 
               {/* Subtitle */}
               <p className="text-gray-600 text-lg lg:text-xl leading-relaxed max-w-lg text-justify">
-                Mau tau kondisi emosional diri sendiri? Badmood tapi gaada yang ngertiin? atau anxiety dateng tiba-tiba? Cobain MenTora aja, MenTora cocok buat kamu!.
+                Mau tau kondisi emosional diri sendiri? Badmood tapi gaada yang ngertiin? atau anxiety dateng tiba-tiba? Cobain MenTora aja, MenTora cocok buat kamu!
               </p>
 
               {/* CTA Button */}
