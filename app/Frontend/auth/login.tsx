@@ -4,10 +4,17 @@ interface LoginProps {
   onSubmit?: (credentials: {
     email: string;
     password: string;
+    role: string;
+    nip?: string;
     rememberMe: boolean;
   }) => void;
   isLoading?: boolean;
-  errors?: { email?: string; password?: string };
+  errors?: { 
+    email?: string; 
+    password?: string; 
+    role?: string;
+    nip?: string;
+  };
   showUnauthorizedMessage?: boolean;
   onForgotPassword?: () => void;
   onRegister?: () => void;
@@ -19,15 +26,18 @@ export default function LoginComponent({
   errors = {},
   showUnauthorizedMessage = false,
   onForgotPassword,
-  onRegister,
 }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
+  const [nip, setNip] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPopup, setShowPopup] = useState(showUnauthorizedMessage);
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
     password?: string;
+    role?: string;
+    nip?: string;
   }>({});
 
   useEffect(() => {
@@ -40,7 +50,12 @@ export default function LoginComponent({
   }, [showUnauthorizedMessage]);
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {};
+    const newErrors: { 
+      email?: string; 
+      password?: string; 
+      role?: string;
+      nip?: string;
+    } = {};
 
     if (!email || typeof email !== "string" || !email.includes("@")) {
       newErrors.email = "Email tidak valid";
@@ -48,6 +63,14 @@ export default function LoginComponent({
 
     if (!password || typeof password !== "string" || password.length < 6) {
       newErrors.password = "Password minimal 6 karakter";
+    }
+
+    if (!role) {
+      newErrors.role = "Role harus dipilih";
+    }
+
+    if (role === "Pemerintah" && (!nip || nip.trim().length === 0)) {
+      newErrors.nip = "NIP wajib diisi untuk role Pemerintah";
     }
 
     setValidationErrors(newErrors);
@@ -62,7 +85,13 @@ export default function LoginComponent({
     }
 
     if (onSubmit) {
-      onSubmit({ email, password, rememberMe });
+      onSubmit({ 
+        email, 
+        password, 
+        role,
+        nip: role === "Pemerintah" ? nip : undefined,
+        rememberMe 
+      });
     }
   };
 
@@ -126,6 +155,61 @@ export default function LoginComponent({
 
             <div>
               <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Role
+              </label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) => {
+                  setRole(e.target.value);
+                  setNip("");
+                }}
+                required
+                className="mt-1 w-full px-4 py-3 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white transition-colors"
+              >
+                <option value="">Pilih Role</option>
+                <option value="User">User</option>
+                <option value="Pemerintah">Pemerintah</option>
+                <option value="Psikolog">Psikolog</option>
+              </select>
+              {displayErrors?.role && (
+                <span className="text-sm text-red-500 mt-1 block">
+                  {displayErrors.role}
+                </span>
+              )}
+            </div>
+
+            {/* Conditional NIP field for Pemerintah */}
+            {role === "Pemerintah" && (
+              <div>
+                <label
+                  htmlFor="nip"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  NIP (Nomor Induk Pegawai)
+                </label>
+                <input
+                  id="nip"
+                  type="text"
+                  value={nip}
+                  onChange={(e) => setNip(e.target.value)}
+                  required
+                  className="mt-1 w-full px-4 py-3 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white transition-colors"
+                  placeholder="Masukkan NIP Anda"
+                />
+                {displayErrors?.nip && (
+                  <span className="text-sm text-red-500 mt-1 block">
+                    {displayErrors.nip}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
@@ -183,26 +267,30 @@ export default function LoginComponent({
                 onClick={async () => {
                   if (!isLoading) {
                     try {
+                      const loginData = {
+                        email: email,
+                        password: password,
+                        role: role,
+                        ...(role === "Pemerintah" && { nip: nip })
+                      };
+
                       const response = await fetch("/api/auth/login", {
                         method: "POST",
                         headers: {
                           "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({
-                          email: email,
-                          password: password,
-                        }),
+                        body: JSON.stringify(loginData),
                       });
                       const data = await response.json();
                       if (response.ok && data.success) {
                         if (data.token) {
-                          localStorage.setItem("authToken", data.token);
+                          console.log("Token would be stored:", data.token);
                         }
                         window.location.href = "/dashboard";
                       } else {
                         alert(
                           data.message ||
-                            "Periksa email dan password Anda."
+                            "Periksa email, password, dan role Anda."
                         );
                       }
                     } catch (error) {
@@ -211,6 +299,8 @@ export default function LoginComponent({
                     } finally {
                       setEmail("");
                       setPassword("");
+                      setRole("");
+                      setNip("");
                       setRememberMe(false);
                     }
                   }

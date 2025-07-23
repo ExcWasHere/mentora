@@ -38,6 +38,28 @@ const emotionToScore: Record<Emotion, number> = {
   Marah: 0,
 };
 
+interface SidebarItemProps {
+  item: {
+    id: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    href: string;
+  };
+}
+
+interface StatsCardProps {
+  card: {
+    title: string;
+    value: string;
+    description: string;
+    change: string;
+    changeType: "positive" | "negative" | "neutral";
+    icon: React.ComponentType<{ className?: string }>;
+    bgColor: string;
+  };
+  index: number;
+}
+
 interface EmologItem {
   id: string;
   interaction_with: string;
@@ -122,12 +144,12 @@ const Dashboard = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const getFirstName = (fullName) => {
+  const getFirstName = (fullName: string): string => {
     if (!fullName || typeof fullName !== "string") return "Pengguna";
     return fullName.trim().split(" ")[0];
   };
 
-  const getInitials = (fullName) => {
+  const getInitials = (fullName: string): string => {
     if (!fullName || typeof fullName !== "string") return "P";
     return fullName
       .trim()
@@ -180,7 +202,7 @@ const Dashboard = () => {
   const statsCards = [
     {
       title: "Emotion Stats",
-      value: calculateAverageEmotion(),
+      value: String(calculateAverageEmotion()),
       description: "Skor Rata-rata",
       change: "+2.5 dari minggu lalu",
       changeType: "positive",
@@ -228,23 +250,23 @@ const Dashboard = () => {
       avatar: item.interaction_with?.slice(0, 2).toUpperCase() || "??",
     }));
 
-const handleLogout = () => {
+  const handleLogout = () => {
     if (confirm("Apakah kamu yakin mau pergi:( ?")) {
-        window.location.href = "/";
+      window.location.href = "/";
     }
-};
+  };
 
-const Logo = () => (
+  const Logo = () => (
     <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg overflow-hidden bg-white">
-        <img
-            src="/favicon.ico"
-            alt="Mentora Logo"
-            className="w-full h-full object-cover"
-        />
+      <img
+        src="/favicon.ico"
+        alt="Mentora Logo"
+        className="w-full h-full object-cover"
+      />
     </div>
-);
+  );
 
-  const SidebarItem = ({ item }) => (
+  const SidebarItem = ({ item }: SidebarItemProps) => (
     <a
       href={item.href}
       onClick={(e) => {
@@ -278,7 +300,7 @@ const Logo = () => (
     </a>
   );
 
-  const StatsCard = ({ card, index }) => (
+  const StatsCard = ({ card, index }: StatsCardProps) => (
     <div
       className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 transform border border-gray-100 ${
         animateStats ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
@@ -498,9 +520,7 @@ const Logo = () => (
                   Interaksi Sosial Terbaru
                 </h3>
                 <button
-                  onClick={() =>
-                    alert("Go to Emolog, coming soon dlu bang!")
-                  }
+                  onClick={() => alert("Go to Emolog, coming soon dlu bang!")}
                   className="px-3 py-2 sm:px-5 sm:py-3 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm flex items-center"
                 >
                   <Plus className="w-4 h-4 mr-1 sm:mr-2" />
@@ -521,9 +541,7 @@ const Logo = () => (
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <div
-                          className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 rounded-2xl flex items-center justify-center mr-3 sm:mr-4 shadow-md"
-                        >
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 rounded-2xl flex items-center justify-center mr-3 sm:mr-4 shadow-md">
                           <span className="text-white font-bold text-xs sm:text-sm">
                             {interaction.avatar}
                           </span>
@@ -561,9 +579,7 @@ const Logo = () => (
               </div>
               <div className="mt-6 sm:mt-8 text-center">
                 <button
-                  onClick={() =>
-                    alert("Go to Emolog, coming soon dlu bang!")
-                  }
+                  onClick={() => alert("Go to Emolog, coming soon dlu bang!")}
                   className="flex items-center justify-center mx-auto text-violet-600 hover:text-violet-800 font-bold transition-colors group text-sm"
                 >
                   Lihat semua interaksi
@@ -620,10 +636,8 @@ const Logo = () => (
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="text-xs sm:text-sm text-gray-600 mb-4 md:mb-0 font-medium text-center md:text-left">
                 © 2025{" "}
-                <span className="font-bold text-violet-700">
-                  Mentora
-                </span>
-                . Hak Cipta Dilindungi.
+                <span className="font-bold text-violet-700">Mentora</span>. Hak
+                Cipta Dilindungi.
               </div>
               <div className="flex items-center space-x-6 sm:space-x-8">
                 <button
