@@ -323,7 +323,7 @@ const Navbar: React.FC<HeaderProps> = () => {
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-white rounded-bl-3xl"></div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes slideInFromRight {
           from {
             opacity: 0;
