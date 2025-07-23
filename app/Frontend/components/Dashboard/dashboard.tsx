@@ -179,7 +179,7 @@ const Dashboard = () => {
 
   const statsCards = [
     {
-      title: "Status Emosi",
+      title: "Emotion Stats",
       value: calculateAverageEmotion(),
       description: "Skor Rata-rata",
       change: "+2.5 dari minggu lalu",
@@ -188,7 +188,7 @@ const Dashboard = () => {
       bgColor: "bg-sky-100",
     },
     {
-      title: "Interaksi Sosial",
+      title: "Social Journey",
       value: "12",
       description: "Mingguan",
       change: "+3 dari minggu lalu",
@@ -197,7 +197,7 @@ const Dashboard = () => {
       bgColor: "bg-blue-200",
     },
     {
-      title: "Sesi Konsultasi",
+      title: "Consultation Time",
       value: "2",
       description: "Bulan ini",
       change: "Jadwal berikutnya: 15 Mei",
@@ -206,7 +206,7 @@ const Dashboard = () => {
       bgColor: "bg-violet-200",
     },
     {
-      title: "Sesi Curhat AI",
+      title: "AloRa Time",
       value: "8",
       description: "Minggu ini",
       change: "+5 dari minggu lalu",

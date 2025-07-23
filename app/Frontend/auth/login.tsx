@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 
 interface LoginProps {
-  onSubmit?: (credentials: { email: string; password: string; rememberMe: boolean }) => void;
+  onSubmit?: (credentials: {
+    email: string;
+    password: string;
+    rememberMe: boolean;
+  }) => void;
   isLoading?: boolean;
   errors?: { email?: string; password?: string };
   showUnauthorizedMessage?: boolean;
@@ -9,19 +13,22 @@ interface LoginProps {
   onRegister?: () => void;
 }
 
-export default function LoginComponent({ 
-  onSubmit, 
-  isLoading = false, 
-  errors = {}, 
+export default function LoginComponent({
+  onSubmit,
+  isLoading = false,
+  errors = {},
   showUnauthorizedMessage = false,
   onForgotPassword,
-  onRegister
+  onRegister,
 }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPopup, setShowPopup] = useState(showUnauthorizedMessage);
-  const [validationErrors, setValidationErrors] = useState<{ email?: string; password?: string }>({});
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
 
   useEffect(() => {
     if (showUnauthorizedMessage) {
@@ -49,7 +56,7 @@ export default function LoginComponent({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -92,7 +99,7 @@ export default function LoginComponent({
               Sudah sejauh ini, yuk teruskan langkah kecilmu bersama Mentora.
             </p>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -116,7 +123,7 @@ export default function LoginComponent({
                 </span>
               )}
             </div>
-            
+
             <div>
               <label
                 htmlFor="password"
@@ -139,7 +146,7 @@ export default function LoginComponent({
                 </span>
               )}
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -167,38 +174,84 @@ export default function LoginComponent({
                 </button>
               </div>
             </div>
-            
+
             <div>
-                <button
+              <button
                 type="submit"
                 disabled={isLoading}
                 className="w-full px-6 py-3 text-white bg-gradient-to-r from-sky-500 to-purple-500 rounded-lg hover:from-sky-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
-                onClick={() => {
+                onClick={async () => {
                   if (!isLoading) {
-                  window.location.href = "/dashboard";
+                    try {
+                      const response = await fetch("/api/auth/login", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                          email: email,
+                          password: password,
+                        }),
+                      });
+                      const data = await response.json();
+                      if (response.ok && data.success) {
+                        if (data.token) {
+                          localStorage.setItem("authToken", data.token);
+                        }
+                        window.location.href = "/dashboard";
+                      } else {
+                        alert(
+                          data.message ||
+                            "Periksa email dan password Anda."
+                        );
+                      }
+                    } catch (error) {
+                      console.error("Error during login:", error);
+                      alert("Silakan coba lagi.");
+                    } finally {
+                      setEmail("");
+                      setPassword("");
+                      setRememberMe(false);
+                    }
                   }
                 }}
-                >
+              >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Memproses...
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Memproses...
                   </div>
                 ) : (
                   "Masuk"
                 )}
-                </button>
+              </button>
             </div>
-            
+
             <div className="text-center">
               <p className="text-sm text-gray-600">
                 Belum memiliki akun?{" "}
                 <button
                   type="button"
-                  onClick={() => window.location.href = "/register"}
+                  onClick={() => (window.location.href = "/register")}
                   className="font-medium text-purple-600 hover:text-purple-800 transition-colors"
                 >
                   Daftar sekarang
@@ -207,7 +260,7 @@ export default function LoginComponent({
             </div>
           </form>
         </div>
-        
+
         <div className="hidden lg:block bg-gradient-to-br from-sky-200 via-purple-100 to-purple-200 p-10 relative overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center z-10">
