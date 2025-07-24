@@ -34,6 +34,7 @@ router.post('/register', strProof.single('str_proof'), async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
     });
   } catch (err) {
     console.error('Register error:', err);
@@ -68,6 +69,7 @@ router.post('/login', async (req, res) => {
       id: user.id,
       name: user.name || user.email.split('@')[0],
       email: user.email,
+      role: user.role,
     };
 
     console.log('Sending response data:', responseData);
