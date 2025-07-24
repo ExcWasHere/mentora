@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Home,
   Calendar,
@@ -74,6 +75,8 @@ const Dashboard = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [animateStats, setAnimateStats] = useState(false);
+  const navigate = useNavigate();
+
 
   const userName = "Ahmad Praktikum";
 
@@ -273,6 +276,7 @@ const Dashboard = () => {
         e.preventDefault();
         setActiveTab(item.id);
         setSidebarOpen(false);
+        navigate(item.href);
       }}
       className={`group relative w-full flex items-center px-4 py-3.5 text-left rounded-xl transition-all duration-300 ${
         item.id === activeTab
