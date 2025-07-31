@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Home,
   Calendar,
@@ -27,6 +26,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { Link } from "@remix-run/react";
 
 type Emotion = "Sangat Baik" | "Baik" | "Biasa" | "Sedih" | "Cemas" | "Marah";
 
@@ -39,88 +39,78 @@ const emotionToScore: Record<Emotion, number> = {
   Marah: 0,
 };
 
-interface SidebarItemProps {
-  item: {
-    id: string;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    href: string;
-  };
-}
-
-interface StatsCardProps {
-  card: {
-    title: string;
-    value: string;
-    description: string;
-    change: string;
-    changeType: "positive" | "negative" | "neutral";
-    icon: React.ComponentType<{ className?: string }>;
-    bgColor: string;
-  };
-  index: number;
+interface DashboardProps {
+  userName: string;
+  userId: string;
+  userEmail: string;
 }
 
 interface EmologItem {
   id: string;
-  interaction_with: string;
-  activity: string;
-  date: string;
-  emotion: Emotion;
+  interaction_with?: string;
+  activity?: string;
+  date?: string;
+  emotion?: string;
 }
 
-const Dashboard = () => {
+const Dashboard = ({ userName, userId }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [animateStats, setAnimateStats] = useState(false);
-  const navigate = useNavigate();
+  const [emologData, setEmologData] = useState<EmologItem[]>([]);
+  const [emotionStats, setEmotionStats] = useState<Record<string, number>>({});
+  const [recentInteractions, setRecentInteractions] = useState<
+    {
+      id: string;
+      type: string;
+      activity: string;
+      time: string;
+      sentiment: Emotion;
+      avatar: string;
+    }[]
+  >([]);
+  useEffect(() => {
+    const fetchEmologData = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/emolog?user_id=${userId}&period=7`
+        );
+        const data = await res.json();
+        const emotionCount: Record<string, number> = {};
+        const interactions: EmologItem[] = [];
 
+        data.forEach((entry: EmologItem) => {
+          emotionCount[entry.emotion] = (emotionCount[entry.emotion] || 0) + 1;
+          if (entry.interaction_with) interactions.push(entry);
+        });
 
-  const userName = "Ahmad Praktikum";
+        setEmotionStats(emotionCount);
+        setEmologData(data);
+        setRecentInteractions(
+          interactions.slice(0, 3).map((item) => ({
+            id: item.id,
+            type: item.interaction_with,
+            activity: item.activity,
+            time: item.date,
+            sentiment: item.emotion as Emotion,
+            avatar: item.interaction_with?.slice(0, 2).toUpperCase() || "??",
+          }))
+        );
+      } catch (error) {
+        console.error("Gagal ambil emolog:", error);
+        setEmologData([]);
+        setRecentInteractions([]);
+      }
+    };
 
-  const emologData: EmologItem[] = [
-    {
-      id: "1",
-      interaction_with: "Keluarga",
-      activity: "Makan malam bersama",
-      date: "2025-01-20",
-      emotion: "Baik",
-    },
-    {
-      id: "2",
-      interaction_with: "Teman",
-      activity: "Bermain game online",
-      date: "2025-01-21",
-      emotion: "Sangat Baik",
-    },
-    {
-      id: "3",
-      interaction_with: "Teman Kerja",
-      activity: "Meeting tim",
-      date: "2025-01-22",
-      emotion: "Biasa",
-    },
-    {
-      id: "4",
-      interaction_with: "Dosen",
-      activity: "Konsultasi tugas",
-      date: "2025-01-23",
-      emotion: "Baik",
-    },
-    {
-      id: "5",
-      interaction_with: "Keluarga",
-      activity: "Obrolan santai",
-      date: "2025-01-24",
-      emotion: "Sangat Baik",
-    },
-  ];
+    fetchEmologData();
+  }, [userId]);
 
   const chartData = emologData.map((item) => ({
     date: item.date,
-    score: emotionToScore[item.emotion] ?? 0,
+    score: emotionToScore[item.emotion as Emotion] ?? 0,
   }));
 
   const calculateAverageEmotion = () => {
@@ -208,16 +198,16 @@ const Dashboard = () => {
       value: String(calculateAverageEmotion()),
       description: "Skor Rata-rata",
       change: "+2.5 dari minggu lalu",
-      changeType: "positive",
+      changeType: "positive" as const,
       icon: Smile,
       bgColor: "bg-sky-100",
     },
     {
       title: "Social Journey",
-      value: "12",
+      value: String(emologData.length),
       description: "Mingguan",
       change: "+3 dari minggu lalu",
-      changeType: "positive",
+      changeType: "positive" as const,
       icon: Users,
       bgColor: "bg-blue-200",
     },
@@ -226,7 +216,7 @@ const Dashboard = () => {
       value: "2",
       description: "Bulan ini",
       change: "Jadwal berikutnya: 15 Mei",
-      changeType: "neutral",
+      changeType: "neutral" as const,
       icon: MessageCircle,
       bgColor: "bg-violet-200",
     },
@@ -235,27 +225,15 @@ const Dashboard = () => {
       value: "8",
       description: "Minggu ini",
       change: "+5 dari minggu lalu",
-      changeType: "positive",
+      changeType: "positive" as const,
       icon: Heart,
       bgColor: "bg-sky-100",
     },
   ];
 
-  const recentInteractions = emologData
-    .slice(-3)
-    .reverse()
-    .map((item) => ({
-      id: item.id,
-      type: item.interaction_with,
-      activity: item.activity,
-      time: item.date,
-      sentiment: item.emotion,
-      avatar: item.interaction_with?.slice(0, 2).toUpperCase() || "??",
-    }));
-
   const handleLogout = () => {
     if (confirm("Apakah kamu yakin mau pergi:( ?")) {
-      window.location.href = "/";
+      window.location.href = "/logout";
     }
   };
 
@@ -269,14 +247,12 @@ const Dashboard = () => {
     </div>
   );
 
-  const SidebarItem = ({ item }: SidebarItemProps) => (
-    <a
-      href={item.href}
-      onClick={(e) => {
-        e.preventDefault();
+  const SidebarItem = ({ item }: { item: typeof sidebarItems[0] }) => (
+    <Link
+      to={item.href}
+      onClick={() => {
         setActiveTab(item.id);
         setSidebarOpen(false);
-        navigate(item.href);
       }}
       className={`group relative w-full flex items-center px-4 py-3.5 text-left rounded-xl transition-all duration-300 ${
         item.id === activeTab
@@ -301,10 +277,10 @@ const Dashboard = () => {
       {item.id === activeTab && (
         <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-violet-600 rounded-r-full"></div>
       )}
-    </a>
+    </Link>
   );
 
-  const StatsCard = ({ card, index }: StatsCardProps) => (
+  const StatsCard = ({ card, index }: { card: typeof statsCards[0], index: number }) => (
     <div
       className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 transform border border-gray-100 ${
         animateStats ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
@@ -347,7 +323,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar */}
       {sidebarOpen && (
         <button
           type="button"
@@ -463,11 +439,11 @@ const Dashboard = () => {
                   >
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-violet-600 rounded-full mr-0 sm:mr-3 flex items-center justify-center">
                       <span className="text-white font-bold text-xs sm:text-sm">
-                        {getInitials(userName)}
+                        {getInitials(userName ?? "")}
                       </span>
                     </div>
                     <span className="hidden sm:inline mr-2 font-semibold">
-                      {getFirstName(userName)}
+                      {getFirstName(userName ?? "")}
                     </span>
                     <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -523,14 +499,14 @@ const Dashboard = () => {
                 <h3 className="text-xl sm:text-2xl font-bold text-gray-800">
                   Interaksi Sosial Terbaru
                 </h3>
-                <button
-                  onClick={() => alert("Go to Emolog, coming soon dlu bang!")}
+                <a
+                  href="/emolog"
                   className="px-3 py-2 sm:px-5 sm:py-3 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm flex items-center"
                 >
                   <Plus className="w-4 h-4 mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">Tambah Baru</span>
                   <span className="sm:hidden">Tambah</span>
-                </button>
+                </a>
               </div>
               <div className="space-y-4">
                 {recentInteractions.map((interaction, index) => (
@@ -582,13 +558,13 @@ const Dashboard = () => {
                 ))}
               </div>
               <div className="mt-6 sm:mt-8 text-center">
-                <button
-                  onClick={() => alert("Go to Emolog, coming soon dlu bang!")}
+                <a
+                  href="/emolog"
                   className="flex items-center justify-center mx-auto text-violet-600 hover:text-violet-800 font-bold transition-colors group text-sm"
                 >
                   Lihat semua interaksi
                   <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" />
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -599,8 +575,8 @@ const Dashboard = () => {
               Quick Buttons
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <button
-                onClick={() => alert("Go to Emolog, coming soon dlu bang!")}
+              <a
+                href="/emolog"
                 className="flex flex-col items-center justify-center p-6 sm:p-8 bg-sky-100 text-violet-700 rounded-2xl hover:bg-blue-200 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl group"
               >
                 <Calendar className="w-6 h-6 sm:w-8 sm:h-8 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" />
@@ -610,9 +586,9 @@ const Dashboard = () => {
                 <span className="text-xs sm:text-sm text-violet-600 mt-2">
                   Yuk Kenali dirimu lewat emolog!
                 </span>
-              </button>
-              <button
-                onClick={() => alert("Go to AloRa, coming soon dlu bang!")}
+              </a>
+              <a
+                href="/alora"
                 className="flex flex-col items-center justify-center p-6 sm:p-8 bg-violet-200 text-violet-800 rounded-2xl hover:bg-violet-300 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl group"
               >
                 <MessageCircle className="w-6 h-6 sm:w-8 sm:h-8 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" />
@@ -622,7 +598,7 @@ const Dashboard = () => {
                 <span className="text-xs sm:text-sm text-violet-700 mt-2">
                   Butuh teman bicara? AloRa ada 24/7 buat kamu!
                 </span>
-              </button>
+              </a>
               <button
                 onClick={() => alert("Emergency Call, coming soon dlu bang!")}
                 className="flex flex-col items-center justify-center p-6 sm:p-8 bg-red-600 text-white rounded-2xl hover:bg-red-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl group sm:col-span-2 lg:col-span-1"

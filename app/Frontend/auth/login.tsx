@@ -1,19 +1,16 @@
+/* import { Form } from "@remix-run/react";
 import { useState, useEffect } from "react";
 
 interface LoginProps {
   onSubmit?: (credentials: {
     email: string;
     password: string;
-    role: string;
-    nip?: string;
     rememberMe: boolean;
   }) => void;
   isLoading?: boolean;
-  errors?: { 
-    email?: string; 
-    password?: string; 
-    role?: string;
-    nip?: string;
+  errors?: {
+    email?: string;
+    password?: string;
   };
   showUnauthorizedMessage?: boolean;
   onForgotPassword?: () => void;
@@ -21,7 +18,6 @@ interface LoginProps {
 }
 
 export default function LoginComponent({
-  onSubmit,
   isLoading = false,
   errors = {},
   showUnauthorizedMessage = false,
@@ -29,15 +25,12 @@ export default function LoginComponent({
 }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
-  const [nip, setNip] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPopup, setShowPopup] = useState(showUnauthorizedMessage);
-  const [validationErrors, setValidationErrors] = useState<{
+
+  const [validationErrors] = useState<{
     email?: string;
     password?: string;
-    role?: string;
-    nip?: string;
   }>({});
 
   useEffect(() => {
@@ -48,52 +41,6 @@ export default function LoginComponent({
       return () => clearTimeout(timer);
     }
   }, [showUnauthorizedMessage]);
-
-  const validateForm = () => {
-    const newErrors: { 
-      email?: string; 
-      password?: string; 
-      role?: string;
-      nip?: string;
-    } = {};
-
-    if (!email || typeof email !== "string" || !email.includes("@")) {
-      newErrors.email = "Email tidak valid";
-    }
-
-    if (!password || typeof password !== "string" || password.length < 6) {
-      newErrors.password = "Password minimal 6 karakter";
-    }
-
-    if (!role) {
-      newErrors.role = "Role harus dipilih";
-    }
-
-    if (role === "Pemerintah" && (!nip || nip.trim().length === 0)) {
-      newErrors.nip = "NIP wajib diisi untuk role Pemerintah";
-    }
-
-    setValidationErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    if (onSubmit) {
-      onSubmit({ 
-        email, 
-        password, 
-        role,
-        nip: role === "Pemerintah" ? nip : undefined,
-        rememberMe 
-      });
-    }
-  };
 
   const displayErrors = { ...validationErrors, ...errors };
 
@@ -129,7 +76,7 @@ export default function LoginComponent({
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <Form method="post" className="space-y-6">
             <div>
               <label
                 htmlFor="email"
@@ -139,6 +86,7 @@ export default function LoginComponent({
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -155,61 +103,6 @@ export default function LoginComponent({
 
             <div>
               <label
-                htmlFor="role"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Role
-              </label>
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => {
-                  setRole(e.target.value);
-                  setNip("");
-                }}
-                required
-                className="mt-1 w-full px-4 py-3 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white transition-colors"
-              >
-                <option value="">Pilih Role</option>
-                <option value="User">User</option>
-                <option value="Pemerintah">Pemerintah</option>
-                <option value="Psikolog">Psikolog</option>
-              </select>
-              {displayErrors?.role && (
-                <span className="text-sm text-red-500 mt-1 block">
-                  {displayErrors.role}
-                </span>
-              )}
-            </div>
-
-            {/* Conditional NIP field for Pemerintah */}
-            {role === "Pemerintah" && (
-              <div>
-                <label
-                  htmlFor="nip"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  NIP (Nomor Induk Pegawai)
-                </label>
-                <input
-                  id="nip"
-                  type="text"
-                  value={nip}
-                  onChange={(e) => setNip(e.target.value)}
-                  required
-                  className="mt-1 w-full px-4 py-3 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white transition-colors"
-                  placeholder="Masukkan NIP Anda"
-                />
-                {displayErrors?.nip && (
-                  <span className="text-sm text-red-500 mt-1 block">
-                    {displayErrors.nip}
-                  </span>
-                )}
-              </div>
-            )}
-
-            <div>
-              <label
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
@@ -217,6 +110,7 @@ export default function LoginComponent({
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -270,11 +164,9 @@ export default function LoginComponent({
                       const loginData = {
                         email: email,
                         password: password,
-                        role: role,
-                        ...(role === "Pemerintah" && { nip: nip })
                       };
 
-                      const response = await fetch("/api/auth/login", {
+                      const response = await fetch("http://localhost:5000/api/auth/login", {
                         method: "POST",
                         headers: {
                           "Content-Type": "application/json",
@@ -282,7 +174,7 @@ export default function LoginComponent({
                         body: JSON.stringify(loginData),
                       });
                       const data = await response.json();
-                      if (response.ok && data.success) {
+                      if (response.ok) {
                         if (data.token) {
                           console.log("Token would be stored:", data.token);
                         }
@@ -290,7 +182,7 @@ export default function LoginComponent({
                       } else {
                         alert(
                           data.message ||
-                            "Periksa email, password, dan role Anda."
+                            "Periksa email dan password anda."
                         );
                       }
                     } catch (error) {
@@ -299,8 +191,6 @@ export default function LoginComponent({
                     } finally {
                       setEmail("");
                       setPassword("");
-                      setRole("");
-                      setNip("");
                       setRememberMe(false);
                     }
                   }
@@ -348,7 +238,7 @@ export default function LoginComponent({
                 </button>
               </p>
             </div>
-          </form>
+          </Form>
         </div>
 
         <div className="hidden lg:block bg-gradient-to-br from-sky-200 via-purple-100 to-purple-200 p-10 relative overflow-hidden">
@@ -384,4 +274,4 @@ export default function LoginComponent({
       `}</style>
     </div>
   );
-}
+} */
