@@ -1,12 +1,20 @@
 const multer = require('multer');
 
-const storage = multer.diskStorage({
+const storageStr = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './app/Backend/upload/str_proof');
   },
   filename: function (req, file, cb) {
     const username = req.body.name;
     cb(null, `STR_PROOF_${username}_${Date.now()}.jpg`);
+  },
+});
+const storageImg = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './app/Backend/upload/post_images');
+  },
+  filename: function (req, file, cb) {
+    cb(null, `POST_IMAGES_${Date.now()}.jpg`);
   },
 });
 
@@ -19,6 +27,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const strProof = multer({ storage, fileFilter });
-
-module.exports = { strProof };
+const strProof = multer({ storage: storageStr, fileFilter });
+const postImage = multer({ storage: storageImg, fileFilter });
+module.exports = { strProof, postImage };
