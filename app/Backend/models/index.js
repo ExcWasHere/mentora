@@ -8,6 +8,7 @@ db.sequelize = sequelize;
 db.User = require('./user')(sequelize, Sequelize.DataTypes);
 db.Emotion = require('./emotion')(sequelize, Sequelize.DataTypes);
 db.Post = require('./post')(sequelize, Sequelize.DataTypes);
+db.UserProfile = require('./user-profile')(sequelize, Sequelize.DataTypes);
 Object.keys(db).forEach((modelName) => {
   if ('associate' in db[modelName]) {
     db[modelName].associate(db);
