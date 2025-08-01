@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": "AngelTemen12345678",
+    "password": "",
     "database": "mentora",
     "host": "127.0.0.1",
     "dialect": "mysql"
