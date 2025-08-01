@@ -27,7 +27,7 @@ export default function RegisterComponent({
   onSubmit,
   isLoading = false,
   errors = {},
-  onLogin
+  onLogin,
 }: RegisterProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -114,25 +114,25 @@ export default function RegisterComponent({
     if (file) {
       const validTypes = ["image/jpeg", "image/jpg", "image/png"];
       if (!validTypes.includes(file.type)) {
-        setValidationErrors(prev => ({
+        setValidationErrors((prev) => ({
           ...prev,
-          strImage: "File harus berupa gambar (JPEG, JPG, PNG)"
+          strImage: "File harus berupa gambar (JPEG, JPG, PNG)",
         }));
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) {
-        setValidationErrors(prev => ({
+        setValidationErrors((prev) => ({
           ...prev,
-          strImage: "Ukuran file maksimal 5MB"
+          strImage: "Ukuran file maksimal 5MB",
         }));
         return;
       }
 
       setStrImage(file);
-      setValidationErrors(prev => ({
+      setValidationErrors((prev) => ({
         ...prev,
-        strImage: undefined
+        strImage: undefined,
       }));
     }
   };
@@ -141,6 +141,11 @@ export default function RegisterComponent({
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-sky-50 to-purple-50 py-8">
+      <img
+        src="/latar-belakang.svg"
+        alt="background"
+        className="fixed inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
+      />
       <div className="w-full max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-2 rounded-xl overflow-hidden shadow-xl">
         <div className="bg-white p-10 border-r border-purple-100 overflow-y-auto max-h-screen">
           <div className="mb-8">
@@ -339,9 +344,25 @@ export default function RegisterComponent({
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Memproses...
                   </div>
@@ -356,7 +377,7 @@ export default function RegisterComponent({
                 Sudah memiliki akun?{" "}
                 <button
                   type="button"
-                  onClick={() => window.location.href = "/login"}
+                  onClick={() => (window.location.href = "/login")}
                   className="font-medium text-purple-600 hover:text-purple-800 transition-colors"
                 >
                   Masuk

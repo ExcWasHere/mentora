@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
   Home,
   Calendar,
@@ -7,15 +6,14 @@ import {
   MessageCircle,
   Heart,
   FileText,
-  LogOut,
-  X,
-  Menu,
   Bell,
   ChevronDown,
-  Save,
-  Trash2,
+  Menu,
+  X,
+  LogOut,
+  Phone,
 } from "lucide-react";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 
 const EMOTION_OPTIONS = [
   { key: "Sangat Baik", label: "Sangat Baik", emoji: "😄" },
@@ -65,15 +63,6 @@ const sidebarItems = [
   },
 ];
 
-interface SidebarItemProps {
-  item: {
-    id: string;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    href: string;
-  };
-}
-
 const EmologPage = () => {
   const [activeTab, setActiveTab] = useState("emotions");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -81,9 +70,6 @@ const EmologPage = () => {
   const [note, setNote] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const navigate = useNavigate();
-  
-  const userName = "Ahmad Praktikum";
   
   type LoaderData = {
     userId: string;
@@ -91,7 +77,7 @@ const EmologPage = () => {
     userEmail?: string;
   };
 
-  const { userId } = useLoaderData<LoaderData>();
+  const { userId, userName = "Pengguna" } = useLoaderData<LoaderData>();
   const [interactionWith, setInteractionWith] = useState("Teman");
   
   type EmologHistory = {
@@ -106,8 +92,8 @@ const EmologPage = () => {
   };
   
   const [history, setHistory] = useState<EmologHistory[]>([]);
-
-  const fetchEmolog = useCallback(async () => {
+  
+  const fetchEmolog = async () => {
     try {
       const res = await fetch(
         `http://localhost:5000/api/emolog?user_id=${userId}`
@@ -119,16 +105,15 @@ const EmologPage = () => {
       console.error("Gagal fetch riwayat emosi:", error);
       setHistory([]);
     }
-  }, [userId]);
+  };
 
   useEffect(() => {
     fetchEmolog();
-  }, [fetchEmolog]);
+  }, [userId]);
 
   const handleSave = async () => {
     console.log("Submitting emotion...");
     if (!selected) return;
-    
     const payload = {
       user_id: userId,
       emotion: selected,
@@ -166,13 +151,15 @@ const EmologPage = () => {
     }
   };
 
-  const handleDelete = (id: number) => {
-    setHistory(history.filter((h) => h.id !== id));
+  const handleDelete = async (id: number) => {
+    if (confirm("Apakah kamu yakin ingin menghapus emosi ini?")) {
+      setHistory(history.filter((h) => h.id !== id));
+    }
   };
 
   const handleLogout = () => {
     if (confirm("Apakah kamu yakin mau pergi:( ?")) {
-      window.location.href = "/";
+      window.location.href = "/logout";
     }
   };
 
@@ -202,14 +189,12 @@ const EmologPage = () => {
     </div>
   );
 
-  const SidebarItem = ({ item }: SidebarItemProps) => (
-    <a
-      href={item.href}
-      onClick={(e) => {
-        e.preventDefault();
+  const SidebarItem = ({ item }: { item: typeof sidebarItems[0] }) => (
+    <Link
+      to={item.href}
+      onClick={() => {
         setActiveTab(item.id);
         setSidebarOpen(false);
-        navigate(item.href);
       }}
       className={`group relative w-full flex items-center px-4 py-3.5 text-left rounded-xl transition-all duration-300 ${
         item.id === activeTab
@@ -234,12 +219,12 @@ const EmologPage = () => {
       {item.id === activeTab && (
         <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-violet-600 rounded-r-full"></div>
       )}
-    </a>
+    </Link>
   );
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar */}
       {sidebarOpen && (
         <button
           type="button"
@@ -355,11 +340,11 @@ const EmologPage = () => {
                   >
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-violet-600 rounded-full mr-0 sm:mr-3 flex items-center justify-center">
                       <span className="text-white font-bold text-xs sm:text-sm">
-                        {getInitials(userName)}
+                        {getInitials(userName ?? "")}
                       </span>
                     </div>
                     <span className="hidden sm:inline mr-2 font-semibold">
-                      {getFirstName(userName)}
+                      {getFirstName(userName ?? "")}
                     </span>
                     <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                   </button>
@@ -370,38 +355,53 @@ const EmologPage = () => {
         </div>
 
         <div className="p-4 sm:p-6 lg:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            {/* Input Form */}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+            {/* Form Emotion */}
             <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 sm:mb-8">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">
                 Bagaimana perasaanmu hari ini?
               </h3>
               
               {/* Emotion Options */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
                 {EMOTION_OPTIONS.map((opt) => (
                   <button
                     key={opt.key}
                     onClick={() => setSelected(opt.key)}
-                    className={`p-4 sm:p-5 rounded-2xl flex flex-col items-center transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 ${
+                    className={`p-3 sm:p-4 rounded-2xl flex flex-col items-center transition-all duration-300 transform hover:scale-105 shadow-md ${
                       selected === opt.key
-                        ? "ring-2 ring-violet-500 bg-violet-50 shadow-xl scale-105"
+                        ? "ring-2 ring-violet-400 bg-violet-50 shadow-lg"
                         : "bg-sky-100 hover:bg-blue-200"
                     }`}
                   >
                     <span className="text-2xl sm:text-3xl mb-2">{opt.emoji}</span>
-                    <span className="text-xs sm:text-sm font-semibold text-violet-700">
+                    <span className="text-xs sm:text-sm font-medium text-violet-700">
                       {opt.label}
                     </span>
                   </button>
                 ))}
               </div>
 
-              {/* Interaction With */}
+              {/* Note Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Catatan (opsional)
+                </label>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Ceritakan lebih detail tentang perasaanmu hari ini..."
+                  className="w-full border border-gray-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-300 resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {/* Interaction Selector */}
               <div className="mb-6">
                 <label
                   htmlFor="interactionWith"
-                  className="block text-sm font-bold text-gray-700 mb-3"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
                 >
                   Interaksi Dengan
                 </label>
@@ -409,7 +409,7 @@ const EmologPage = () => {
                   id="interactionWith"
                   value={interactionWith}
                   onChange={(e) => setInteractionWith(e.target.value)}
-                  className="w-full border-2 border-gray-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all duration-300 font-medium"
+                  className="w-full border border-gray-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-300"
                 >
                   <option value="Teman">Teman</option>
                   <option value="Keluarga">Keluarga</option>
@@ -419,60 +419,49 @@ const EmologPage = () => {
                 </select>
               </div>
 
-              {/* Note */}
-              <div className="mb-6">
-                <label htmlFor="note" className="block text-sm font-bold text-gray-700 mb-3">
-                  Catatan (opsional)
-                </label>
-                <textarea
-                  id="note"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="Ceritakan lebih detail tentang perasaanmu..."
-                  className="w-full border-2 border-gray-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all duration-300 font-medium resize-none"
-                  rows={4}
-                />
-              </div>
-
               {/* Save Button */}
               <button
                 disabled={!selected}
                 onClick={handleSave}
-                className="w-full bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 font-bold text-lg flex items-center justify-center"
+                className="w-full bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                <Save className="w-5 h-5 mr-2" />
-                Simpan Emosi
+                {selected ? "Simpan Emosi 💜" : "Pilih Emosi Terlebih Dahulu"}
               </button>
             </div>
 
-            {/* History */}
+            {/* Diary */}
             <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6 sm:mb-8">
-                Riwayat Emosi
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800">
+                  EmoDiary
+                </h3>
+                <span className="text-sm font-medium text-violet-600 bg-violet-100 px-3 py-1 rounded-full">
+                  {history.length} Catatan
+                </span>
+              </div>
               
               {history.length === 0 ? (
-                <div className="text-center py-12">
+                <div className="text-center py-8">
                   <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Calendar className="w-8 h-8 text-violet-600" />
+                    <Calendar className="w-8 h-8 text-violet-700" />
                   </div>
                   <p className="text-gray-500 font-medium">
                     Belum ada data emosi
                   </p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    Mulai catat emosimu hari ini!
+                  <p className="text-sm text-gray-400 mt-1">
+                    Mulai catat emosimu hari ini! 🌟
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {history.map((h) => (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {history.map((h, index) => (
                     <div
                       key={h.id}
-                      className="bg-sky-50 p-4 sm:p-5 rounded-2xl border border-blue-100 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-102"
+                      className="bg-sky-50 p-4 rounded-2xl border border-blue-200 hover:shadow-md transition-all duration-300 transform hover:scale-102"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center">
+                          <span className="text-2xl mr-3">
                             {
                               EMOTION_OPTIONS.find((e) => e.key === h.emotion)
                                 ?.emoji
@@ -486,8 +475,11 @@ const EmologPage = () => {
                               }
                             </span>
                             {h.interaction_with && (
-                              <p className="text-sm text-gray-600 font-medium">
-                                dengan {h.interaction_with}
+                              <p className="text-sm text-gray-600 mt-1">
+                                dengan{" "}
+                                <span className="font-medium text-violet-600">
+                                  {h.interaction_with}
+                                </span>
                               </p>
                             )}
                           </div>
@@ -496,23 +488,23 @@ const EmologPage = () => {
                           <span className="text-xs text-gray-500 font-medium">
                             {h.date} {h.time}
                           </span>
-                          <button
-                            onClick={() => handleDelete(h.id)}
-                            className="block mt-1 text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50"
-                            title="Hapus"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
                         </div>
                       </div>
-
+                      
                       {h.note && (
-                        <div className="bg-white p-3 rounded-xl border border-blue-200">
-                          <p className="text-sm text-gray-700 font-medium italic">
-                            &quot;{h.note}&quot;
-                          </p>
-                        </div>
+                        <p className="text-sm text-gray-700 mt-2 bg-white p-3 rounded-lg border border-gray-100">
+                          "{h.note}"
+                        </p>
                       )}
+                      
+                      <div className="flex justify-end mt-3">
+                        <button
+                          onClick={() => handleDelete(h.id)}
+                          className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          Hapus
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
