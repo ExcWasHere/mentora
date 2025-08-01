@@ -89,7 +89,7 @@ router.get('/user/:id', async (req, res) => {
     }
 
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'name', 'email'],
+      attributes: ['id', 'name', 'email', 'role'],
     });
 
     if (!user) {
@@ -106,6 +106,7 @@ router.get('/user/:id', async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
     });
   } catch (error) {
     console.error('Get user error:', error);
