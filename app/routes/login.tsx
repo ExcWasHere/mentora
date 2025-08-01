@@ -114,6 +114,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-sky-50 to-purple-50 py-8 relative">
+      <img
+        src="/latar-belakang.svg"
+        alt="background"
+        className="fixed inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
+      />
       {showPopup && (
         <div className="fixed top-5 right-5 z-50 bg-purple-100 border border-purple-300 text-purple-800 px-4 py-3 rounded-lg shadow-lg transform opacity-0 animate-[fade-slide-right_0.4s_ease-out_forwards]">
           <div className="flex items-center">
