@@ -12,12 +12,12 @@ const emologRoutes = require('./routes/emolog');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(express.json());
 app.get('/', (req, res) => res.send('Hello, World!'));
 app.use('/api/auth', authRoutes);
 app.use('/api/emolog', emologRoutes);

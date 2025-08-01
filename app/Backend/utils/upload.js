@@ -27,6 +27,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const strProof = multer({ storageStr, fileFilter });
-const postImage = multer({ storageImg, fileFilter });
+const strProof = multer({ storage: storageStr, fileFilter });
+const postImage = multer({ storage: storageImg, fileFilter });
 module.exports = { strProof, postImage };
