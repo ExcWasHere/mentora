@@ -24,6 +24,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      text_input: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       subdistrict_id: {
         type: Sequelize.INTEGER,
         allowNull: true,

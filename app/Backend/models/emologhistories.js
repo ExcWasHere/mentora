@@ -43,6 +43,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+     text_input: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     recorded_at: {
       type: DataTypes.DATE,
       allowNull: false,

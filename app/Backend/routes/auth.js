@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
 const { hashPassword, comparePassword } = require('../utils/password');
+const { generateJwt } = require('../utils/jwt');
 const { strProof } = require('../utils/upload');
+const { jwtAuthMiddleware } = require('../middlewares/jwtMiddleware');
+const { token } = require('morgan');
 
 router.post('/register', strProof.single('str_proof'), async (req, res) => {
   console.log(req.body);
@@ -57,7 +60,11 @@ router.post('/login', async (req, res) => {
     if (!compare) {
       console.log('Invalid password for user:', email);
       return res.status(401).json({ error: 'password salah' });
-    }
+    } 
+
+    const jwtToken = generateJwt({ id: user.id, email: user.email });
+    console.log('jwtToken', jwtToken);
+    
 
     console.log('Login successful for user:', {
       id: user.id,
@@ -70,6 +77,7 @@ router.post('/login', async (req, res) => {
       name: user.name || user.email.split('@')[0],
       email: user.email,
       role: user.role,
+      token: jwtToken
     };
 
     console.log('Sending response data:', responseData);
@@ -80,7 +88,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.get('/user/:id', async (req, res) => {
+router.get('/user', jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.params.id;
 
