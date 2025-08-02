@@ -1,18 +1,7 @@
 'use strict';
-const { Model } = require('sequelize');
-
 module.exports = (sequelize, DataTypes) => {
-  class userprofiles extends Model {
-    static associate(models) {
-      userprofiles.belongsTo(models.User, {
-        foreignKey: 'user_id',
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-      });
-    }
-  }
-
-  userprofiles.init(
+  const UserProfile = sequelize.define(
+    'UserProfile',
     {
       user_id: {
         type: DataTypes.INTEGER,
@@ -39,12 +28,19 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     {
-      sequelize,
-      modelName: 'userprofiles',
       tableName: 'user_profiles',
       underscored: true,
+      timestamps: false,
     }
   );
 
-  return userprofiles;
+  UserProfile.associate = function (models) {
+    UserProfile.belongsTo(models.User, {
+      foreignKey: 'user_id',
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    });
+  };
+
+  return UserProfile;
 };
