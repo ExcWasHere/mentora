@@ -56,6 +56,5 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.dropTable('user_profiles');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_user_profiles_gender";');
   },
 };
