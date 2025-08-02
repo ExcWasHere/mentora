@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
 const { hashPassword, comparePassword } = require('../utils/password');
-const { generateJwt } = require('../utils/jwt');
+const { generateJwt, generateJwtToken } = require('../utils/jwt');
 const { strProof } = require('../utils/upload');
-const { jwtAuthMiddleware } = require('../middlewares/jwtMiddleware');
+const { jwtAuthMiddleware } = require('../middlewares/auth');
 const { token } = require('morgan');
 
 router.post('/register', strProof.single('str_proof'), async (req, res) => {
@@ -62,7 +62,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'password salah' });
     } 
 
-    const jwtToken = generateJwt({ id: user.id, email: user.email });
+    const jwtToken = generateJwtToken({ id: user.id, email: user.email });
     console.log('jwtToken', jwtToken);
     
 
