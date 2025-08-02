@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-  const psikologProfile = sequelize.define(
-    'psikologProfile',
+  const PsikologProfile = sequelize.define(
+    'PsikologProfile',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -34,9 +34,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  psikologProfile.associate = function (models) {
-    psikologProfile.belongsTo(models.User, { foreignKey: 'user_id' });
+  PsikologProfile.associate = function (models) {
+    PsikologProfile.belongsTo(models.User, { foreignKey: 'psikolog_id' });
   };
 
-  return psikologProfile;
+  return PsikologProfile;
 };
