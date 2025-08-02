@@ -8,6 +8,7 @@ const process = require('process');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/post');
 const psikologProfileRoutes = require('./routes/psikologProfile');
+const psikologScheduleRoutes = require('./routes/psikologSchedule');
 const db = require('./models');
 const emologRoutes = require('./routes/emolog');
 const app = express();
@@ -24,6 +25,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/emolog', emologRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/psikolog-profile', psikologProfileRoutes);
+app.use('/api/schedule', psikologScheduleRoutes);
 
 db.sequelize.sync().then(() => {
   console.log('Database synced');
