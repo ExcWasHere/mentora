@@ -2,10 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
 const { hashPassword, comparePassword } = require('../utils/password');
-const { generateJwt, generateJwtToken } = require('../utils/jwt');
+const { generateJwtToken } = require('../utils/jwt');
 const { strProof } = require('../utils/upload');
 const { jwtAuthMiddleware } = require('../middlewares/auth');
-const { token } = require('morgan');
 
 router.post('/register', strProof.single('str_proof'), async (req, res) => {
   console.log(req.body);
@@ -60,11 +59,10 @@ router.post('/login', async (req, res) => {
     if (!compare) {
       console.log('Invalid password for user:', email);
       return res.status(401).json({ error: 'password salah' });
-    } 
+    }
 
-    const jwtToken = generateJwtToken({ id: user.id, email: user.email });
+    const jwtToken = await generateJwtToken(user.id, user.email);
     console.log('jwtToken', jwtToken);
-    
 
     console.log('Login successful for user:', {
       id: user.id,
@@ -77,7 +75,7 @@ router.post('/login', async (req, res) => {
       name: user.name || user.email.split('@')[0],
       email: user.email,
       role: user.role,
-      token: jwtToken
+      token: jwtToken,
     };
 
     console.log('Sending response data:', responseData);
