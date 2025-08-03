@@ -12,6 +12,12 @@ module.exports = (sequelize, DataTypes) => {
       psikolog_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'users', // nama tabel target (bukan nama model)
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       date: {
         type: DataTypes.DATEONLY,
@@ -47,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'psikolog_id',
       onDelete: 'CASCADE',
     });
+  };
+
+  PsikologSchedule.associate = function (models) {
+    PsikologSchedule.hasMany(models.Appointment, { foreignKey: 'schedule_id' });
   };
 
   return PsikologSchedule;

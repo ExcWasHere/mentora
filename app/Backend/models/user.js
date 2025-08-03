@@ -39,10 +39,13 @@ module.exports = (sequelize, DataTypes) => {
     User.hasMany(models.Post, { foreignKey: 'user_id' });
   };
   User.associate = function (models) {
+    User.hasMany(models.Appointment, { foreignKey: 'user_id' });
+  };
+  User.associate = function (models) {
     User.hasOne(models.UserProfile, { foreignKey: 'user_id' });
   };
   User.associate = function (models) {
-    User.hasMany(models.PsikologProfile, { foreignKey: 'psikolog_id' });
+    User.hasOne(models.PsikologProfile, { foreignKey: 'psikolog_id' });
   };
 
   return User;
