@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = (sequelize, DataTypes) => {
   const UserProfile = sequelize.define(
     'UserProfile',
@@ -14,32 +15,71 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
-      firstName: {
-        type: DataTypes.STRING,
+      district_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'districts',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
+      subdistrict_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'subdistricts',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
+      },
+      gender: {
+        type: DataTypes.ENUM('L', 'P'),
+        allowNull: false,
+      },
+      birthdate: {
+        type: DataTypes.DATEONLY,
         allowNull: true,
       },
-      lastName: {
-        type: DataTypes.STRING,
-        allowNull: true,
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
       },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: true,
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
       },
     },
     {
       tableName: 'user_profiles',
       underscored: true,
-      timestamps: false,
+      timestamps: true, 
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
     }
   );
 
   UserProfile.associate = function (models) {
+
     UserProfile.belongsTo(models.User, {
       foreignKey: 'user_id',
       onDelete: 'CASCADE',
       onUpdate: 'CASCADE',
     });
+
+    // UserProfile.belongsTo(models.District, {
+    //   foreignKey: 'district_id',
+    //   // onDelete: 'SET NULL',
+    //   // onUpdate: 'CASCADE',
+    // });
+
+    // UserProfile.belongsTo(models.Subdistrict, {
+    //   foreignKey: 'subdistrict_id',
+    //   // onDelete: 'SET NULL',
+    //   // onUpdate: 'CASCADE',
+    // });
   };
 
   return UserProfile;
