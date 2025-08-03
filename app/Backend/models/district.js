@@ -1,16 +1,7 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class district extends Model {
-    static associate(models) {
-      this.hasMany(models.subdistrict, { foreignKey: 'district_id' });
-    }
-  }
-
-  district.init({
+  const District = sequelize.define('District', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -20,22 +11,22 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    createdAt: {
+    created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
-      field: 'created_at'
+      allowNull: false
     },
-    updatedAt: {
+    updated_at: {
       type: DataTypes.DATE,
-      allowNull: false,
-      field: 'updated_at'
+      allowNull: false
     }
   }, {
-    sequelize,
-    modelName: 'district',
     tableName: 'districts',
     underscored: true
   });
 
-  return district;
+  District.associate = function(models) {
+    District.hasMany(models.Subdistrict, { foreignKey: 'district_id' });
+  };
+
+  return District;
 };
