@@ -61,7 +61,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'password salah' });
     }
 
-    const jwtToken = await generateJwtToken(user.id, user.email);
+    const jwtToken = await generateJwtToken(user.id, user.email, user.role);
     console.log('jwtToken', jwtToken);
 
     console.log('Login successful for user:', {
@@ -88,7 +88,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/user', jwtAuthMiddleware, async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID required' });

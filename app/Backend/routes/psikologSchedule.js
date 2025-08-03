@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { PsikologSchedule, User } = require('../models');
+const { PsikologSchedule } = require('../models');
+const { jwtAuthMiddleware, checkPsikolog } = require('../middlewares/auth');
 
-router.post('/', async (req, res) => {
+router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
   try {
-    const { date, start_time, end_time, kuota, psikolog_id } = req.body;
-
-    if (!date || !start_time || !end_time || !kuota || !psikolog_id) {
-      return res.status(400).json({ message: 'date, start_time, end_time, kuota, psikolog_id wajib diisi.' });
+    const { date, start_time, end_time, kuota } = req.body;
+    const psikolog_id = req.user.id;
+    if (!date || !start_time || !end_time || !kuota) {
+      return res.status(400).json({ message: 'date, start_time, end_time, kuota wajib diisi.' });
     }
 
     const existing = await PsikologSchedule.findOne({
@@ -20,10 +21,6 @@ router.post('/', async (req, res) => {
     });
     if (existing) {
       return res.status(409).json({ message: 'psikolog schedule sudah ada. tidak bisa duplikat' });
-    }
-    const checkPsikolog = await User.findOne({ where: { id: psikolog_id, role: 'psikolog' } });
-    if (!checkPsikolog) {
-      return res.status(404).json({ message: 'User bukan psikolog' });
     }
 
     // Simpan ke database
@@ -52,7 +49,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
   }
 });
-router.get('/:id', async (req, res) => {
+router.get('/getById/:id', async (req, res) => {
   try {
     const id = req.params.id;
 
@@ -68,6 +65,19 @@ router.get('/:id', async (req, res) => {
 router.get('/psikolog/:id', async (req, res) => {
   try {
     const id = req.params.id;
+
+    const data = await PsikologSchedule.findAll({ where: { psikolog_id: id } });
+    if (!data) {
+      return res.status(404).json({ error: 'psikolog schedule not found' });
+    }
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
+  }
+});
+router.get('/me', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
+  try {
+    const id = req.user.id;
 
     const data = await PsikologSchedule.findAll({ where: { psikolog_id: id } });
     if (!data) {
