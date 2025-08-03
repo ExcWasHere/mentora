@@ -55,5 +55,9 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
+  PsikologSchedule.associate = function (models) {
+    PsikologSchedule.hasMany(models.Appointment, { foreignKey: 'schedule_id' });
+  };
+
   return PsikologSchedule;
 };

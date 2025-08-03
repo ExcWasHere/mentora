@@ -57,6 +57,7 @@ module.exports = (sequelize, DataTypes) => {
     Appointment.belongsTo(models.PsikologSchedule, {
       foreignKey: 'schedule_id',
       onDelete: 'CASCADE',
+      as: 'schedule',
     });
   };
 
