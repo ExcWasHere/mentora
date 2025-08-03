@@ -58,6 +58,37 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.delete('/cancel', async (req, res) => {
+  try {
+    const { appointment_id, user_id } = req.body;
+    if (!appointment_id) {
+      return res.status(400).json({ message: 'appointment_id wajib diisi' });
+    }
+    const appointment = await Appointment.findOne({ where: { id: appointment_id, user_id: user_id, status: 'Pending' } });
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    const schedule = await PsikologSchedule.findOne({ where: { id: appointment.schedule_id } });
+    // Update kuota jadwal (increment 1)
+    const newKuota = schedule.kuota + 1;
+    let newStatus = schedule.status;
+
+    if (newKuota > 0) {
+      newStatus = 'tersedia';
+    }
+
+    await schedule.update({
+      kuota: newKuota,
+      status: newStatus,
+    });
+    await Appointment.destroy({ where: { id: appointment_id } });
+
+    res.status(200).json({ message: 'Appointment berhasil dibatalkan' });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
     const data = await Appointment.findAll();
