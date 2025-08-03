@@ -1,18 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { PsikologProfile, User } = require('../models');
+const { PsikologProfile } = require('../models');
+const { jwtAuthMiddleware, checkPsikolog } = require('../middlewares/auth');
 
-router.post('/', async (req, res) => {
+router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
   try {
-    const { nama_tempat_praktek, alamat_tempat_praktek, psikolog_id } = req.body;
+    const { nama_tempat_praktek, alamat_tempat_praktek } = req.body;
+    const psikolog_id = req.user.id;
 
+    if (!nama_tempat_praktek || !alamat_tempat_praktek) {
+      return res.status(400).json({ message: 'nama_tempat_praktek, alamat_tempat_praktek wajib diisi.' });
+    }
     const existing = await PsikologProfile.findOne({ where: { psikolog_id } });
     if (existing) {
       return res.status(409).json({ message: 'psikolog profile sudah ada' });
-    }
-    const checkPsikolog = await User.findOne({ where: { id: psikolog_id, role: 'psikolog' } });
-    if (!checkPsikolog) {
-      return res.status(404).json({ message: 'User bukan psikolog' });
     }
 
     // Simpan ke database
@@ -39,11 +40,14 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
   }
 });
-router.get('/:id', async (req, res) => {
-  try {
-    const id = req.params.id;
 
-    const data = await PsikologProfile.findOne({ where: { id: id } });
+router.get('/me', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
+  try {
+    const id = req.user.id;
+
+    const data = await PsikologProfile.findOne({ where: { psikolog_id: id } });
+    console.log(data);
+
     if (!data) {
       return res.status(404).json({ error: 'psikolog not found' });
     }

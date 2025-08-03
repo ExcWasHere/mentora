@@ -1,11 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { Appointment, PsikologSchedule, User } = require('../models');
+const { Appointment, PsikologSchedule } = require('../models');
+const { jwtAuthMiddleware, checkUser } = require('../middlewares/auth');
 
-router.post('/', async (req, res) => {
+router.post('/', jwtAuthMiddleware, checkUser, async (req, res) => {
   try {
-    const { user_id, schedule_id } = req.body;
-
+    const { schedule_id } = req.body;
+    const user_id = req.user.id;
+    if (!schedule_id) {
+      return res.status(400).json({ message: 'schedule_id wajib diisi.' });
+    }
     const schedule = await PsikologSchedule.findOne({ where: { id: schedule_id } });
     if (!schedule) {
       return res.status(404).json({ message: 'Jadwal psikolog tidak ditemukan' });
@@ -16,11 +20,15 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Kuota sudah penuh' });
     }
 
-    const checkUser = await User.findByPk(user_id);
-    if (!checkUser) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+    const existing = await Appointment.findOne({
+      where: {
+        user_id: user_id,
+        schedule_id: schedule_id,
+      },
+    });
+    if (existing) {
+      return res.status(409).json({ message: 'Anda sudah memiliki jadwal' });
     }
-
     //hitung dari jumlah appointment pada jadwal tsb
     const nomorAntrian =
       (await Appointment.count({
@@ -58,9 +66,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.delete('/cancel', async (req, res) => {
+router.delete('/cancel', jwtAuthMiddleware, checkUser, async (req, res) => {
   try {
-    const { appointment_id, user_id } = req.body;
+    const { appointment_id } = req.body;
+    const user_id = req.user.id;
     if (!appointment_id) {
       return res.status(400).json({ message: 'appointment_id wajib diisi' });
     }
@@ -98,9 +107,9 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/user/:user_id', async (req, res) => {
+router.get('/me', jwtAuthMiddleware, checkUser, async (req, res) => {
   try {
-    const user_id = req.params.user_id;
+    const user_id = req.user.id;
     const totalKonsul = await Appointment.count({ where: { user_id: user_id, status: 'Selesai' } });
     const konsulSelanjutnya = await Appointment.findOne({
       where: { user_id: user_id, status: 'Pending' },

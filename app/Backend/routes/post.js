@@ -2,13 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { Post, User } = require('../models');
 const { postImage } = require('../utils/upload');
+const { jwtAuthMiddleware } = require('../middlewares/auth');
 
-router.post('/', postImage.array('images', 5), async (req, res) => {
+router.post('/', jwtAuthMiddleware, postImage.array('images', 5), async (req, res) => {
   try {
-    const { content, user_id } = req.body;
-
-    if (!content || !user_id) {
-      return res.status(400).json({ message: 'content dan user_id wajib diisi.' });
+    const { content } = req.body;
+    const user_id = req.user.id;
+    if (!content) {
+      return res.status(400).json({ message: 'content wajib diisi.' });
     }
 
     const checkUser = await User.findByPk(user_id);
@@ -18,7 +19,6 @@ router.post('/', postImage.array('images', 5), async (req, res) => {
 
     // Ambil nama-nama file gambar (jika ada)
     const imageFiles = req.files?.map((file) => file.filename) || [];
-    console.log(req.files);
 
     // Simpan ke database
     const postingan = await Post.create({

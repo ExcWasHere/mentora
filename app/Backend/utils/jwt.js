@@ -1,11 +1,11 @@
 require('dotenv').config();
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 const jwtSecret = process.env.JWT_SECRET;
 
 console.log('JWT_SECRET:', jwtSecret);
 
-const generateJwtToken = async (id, email) => {
+const generateJwtToken = async (id, email, role) => {
   if (!id || !email) {
     throw new Error('ID and email are required');
   }
@@ -17,15 +17,12 @@ const generateJwtToken = async (id, email) => {
   const payload = {
     id: id,
     email: email,
+    role: role,
   };
 
   try {
-    const token = jwt.sign(
-      payload,
-      jwtSecret,
-      { expiresIn: "1h" }
-    );
-    
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: '24h' });
+
     return token;
   } catch (error) {
     throw new Error('Failed to generate JWT token: ' + error.message);
