@@ -69,17 +69,17 @@ module.exports = (sequelize, DataTypes) => {
       onUpdate: 'CASCADE',
     });
 
-    // UserProfile.belongsTo(models.District, {
-    //   foreignKey: 'district_id',
-    //   // onDelete: 'SET NULL',
-    //   // onUpdate: 'CASCADE',
-    // });
+    UserProfile.belongsTo(models.District, {
+      foreignKey: 'district_id',
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE',
+    });
 
-    // UserProfile.belongsTo(models.Subdistrict, {
-    //   foreignKey: 'subdistrict_id',
-    //   // onDelete: 'SET NULL',
-    //   // onUpdate: 'CASCADE',
-    // });
+    UserProfile.belongsTo(models.Subdistrict, {
+      foreignKey: 'subdistrict_id',
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE',
+    });
   };
 
   return UserProfile;
