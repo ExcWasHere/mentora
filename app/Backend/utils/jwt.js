@@ -3,8 +3,6 @@ const jwt = require('jsonwebtoken');
 
 const jwtSecret = process.env.JWT_SECRET;
 
-console.log('JWT_SECRET:', jwtSecret);
-
 const generateJwtToken = async (id, email, role) => {
   if (!id || !email) {
     throw new Error('ID and email are required');

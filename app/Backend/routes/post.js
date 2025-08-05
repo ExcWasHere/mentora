@@ -39,7 +39,7 @@ router.post('/', jwtAuthMiddleware, postImage.array('images', 5), async (req, re
 router.get('/', async (req, res) => {
   try {
     const data = await Post.findAll();
-    console.log(data);
+    // console.log(data);
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
@@ -53,7 +53,7 @@ router.get('/:id', async (req, res) => {
     if (!data) {
       return res.status(404).json({ error: 'Postingan not found' });
     }
-    console.log(data);
+    // console.log(data);
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });

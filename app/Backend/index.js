@@ -29,9 +29,11 @@ app.use('/api/post', postRoutes);
 app.use('/api/psikolog-profile', psikologProfileRoutes);
 app.use('/api/schedule', psikologScheduleRoutes);
 app.use('/api/appointment', appointmentRoutes);
-app.use('/api/profile', userProfileRoutes)
+app.use('/api/profile', userProfileRoutes);
 
 db.sequelize.sync().then(() => {
   console.log('Database synced');
-  app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`Server running at http://127.0.0.1:${PORT}`);
+  });
 });
