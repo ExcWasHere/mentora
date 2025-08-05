@@ -20,6 +20,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      no_wa: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isNumeric: true,
+          len: [10, 20],
+        },
+      },
       psikolog_id: {
         type: DataTypes.INTEGER,
         allowNull: false,

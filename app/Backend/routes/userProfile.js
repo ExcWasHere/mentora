@@ -3,7 +3,6 @@ const router = express.Router();
 const { UserProfile, District, Subdistrict } = require('../models');
 const { jwtAuthMiddleware } = require('../middlewares/auth');
 
-
 router.get('/', jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -14,27 +13,19 @@ router.get('/', jwtAuthMiddleware, async (req, res) => {
 
     const userProfile = await UserProfile.findOne({
       where: { user_id: userId },
-      attributes: [
-        'user_id',
-        'district_id',
-        'subdistrict_id',
-        'gender',
-        'birthdate',
-        'created_at',
-        'updated_at'
-      ],
+      attributes: ['user_id', 'district_id', 'subdistrict_id', 'gender', 'birthdate', 'no_wa', 'created_at', 'updated_at'],
       include: [
         {
           model: District,
           attributes: ['id', 'name'],
-          required: false
+          required: false,
         },
         {
           model: Subdistrict,
           attributes: ['id', 'name'],
-          required: false
-        }
-      ]
+          required: false,
+        },
+      ],
     });
 
     if (!userProfile) {
@@ -51,9 +42,9 @@ router.get('/', jwtAuthMiddleware, async (req, res) => {
 router.post('/', jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { district_id, subdistrict_id, gender, birthdate } = req.body;
+    const { district_id, subdistrict_id, gender, birthdate, no_wa } = req.body;
 
-    if (!district_id || !subdistrict_id || !gender || !birthdate) {
+    if (!district_id || !subdistrict_id || !gender || !birthdate || !no_wa) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -61,8 +52,8 @@ router.post('/', jwtAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Gender must be L or P' });
     }
 
-    const existingProfile = await UserProfile.findOne({ 
-      where: { user_id: userId } 
+    const existingProfile = await UserProfile.findOne({
+      where: { user_id: userId },
     });
 
     if (existingProfile) {
@@ -75,10 +66,10 @@ router.post('/', jwtAuthMiddleware, async (req, res) => {
     }
 
     const subdistrict = await Subdistrict.findOne({
-      where: { 
+      where: {
         id: subdistrict_id,
-        district_id: district_id 
-      }
+        district_id: district_id,
+      },
     });
     if (!subdistrict) {
       return res.status(400).json({ error: 'Subdistrict not found or not belong to selected district' });
@@ -89,12 +80,13 @@ router.post('/', jwtAuthMiddleware, async (req, res) => {
       district_id,
       subdistrict_id,
       gender,
-      birthdate
+      birthdate,
+      no_wa,
     });
 
     res.status(201).json({
       message: 'Profile created successfully',
-      profile: newProfile
+      profile: newProfile,
     });
   } catch (error) {
     console.error('Create profile error:', error);
@@ -105,14 +97,14 @@ router.post('/', jwtAuthMiddleware, async (req, res) => {
 router.put('/', jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { district_id, subdistrict_id, gender, birthdate } = req.body;
+    const { district_id, subdistrict_id, gender, birthdate, no_wa } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID required' });
     }
 
-    const existingProfile = await UserProfile.findOne({ 
-      where: { user_id: userId } 
+    const existingProfile = await UserProfile.findOne({
+      where: { user_id: userId },
     });
 
     if (!existingProfile) {
@@ -120,12 +112,11 @@ router.put('/', jwtAuthMiddleware, async (req, res) => {
     }
 
     const updateData = {};
-    
-    if (district_id !== undefined) {
 
-      const district = await District.findOne({ 
-      where: { id: district_id } 
-    });
+    if (district_id !== undefined) {
+      const district = await District.findOne({
+        where: { id: district_id },
+      });
       if (!district) {
         return res.status(400).json({ error: 'District not found' });
       }
@@ -135,10 +126,10 @@ router.put('/', jwtAuthMiddleware, async (req, res) => {
     if (subdistrict_id !== undefined) {
       const targetDistrictId = district_id || existingProfile.district_id;
       const subdistrict = await Subdistrict.findOne({
-        where: { 
+        where: {
           id: subdistrict_id,
-          district_id: targetDistrictId 
-        }
+          district_id: targetDistrictId,
+        },
       });
       if (!subdistrict) {
         return res.status(400).json({ error: 'Subdistrict not found or not belong to selected district' });
@@ -156,9 +147,12 @@ router.put('/', jwtAuthMiddleware, async (req, res) => {
     if (birthdate !== undefined) {
       updateData.birthdate = birthdate;
     }
+    if (no_wa !== undefined) {
+      updateData.no_wa = no_wa;
+    }
 
     await UserProfile.update(updateData, {
-      where: { user_id: userId }
+      where: { user_id: userId },
     });
 
     const updatedProfile = await UserProfile.findOne({
@@ -167,25 +161,24 @@ router.put('/', jwtAuthMiddleware, async (req, res) => {
         {
           model: District,
           attributes: ['id', 'name'],
-          required: false
+          required: false,
         },
         {
           model: Subdistrict,
           attributes: ['id', 'name'],
-          required: false
-        }
-      ]
+          required: false,
+        },
+      ],
     });
 
     res.json({
       message: 'Profile updated successfully',
-      profile: updatedProfile
+      profile: updatedProfile,
     });
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: error.message });
   }
 });
-
 
 module.exports = router;
