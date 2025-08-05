@@ -5,10 +5,10 @@ const { jwtAuthMiddleware, checkPsikolog } = require('../middlewares/auth');
 
 router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
   try {
-    const { date, start_time, end_time, kuota } = req.body;
+    const { date, start_time, end_time, kuota, jenis_konsultasi, harga } = req.body;
     const psikolog_id = req.user.id;
-    if (!date || !start_time || !end_time || !kuota) {
-      return res.status(400).json({ message: 'date, start_time, end_time, kuota wajib diisi.' });
+    if (!date || !start_time || !end_time || !kuota || !jenis_konsultasi || !harga) {
+      return res.status(400).json({ message: 'date, start_time, end_time, kuota, jenis_konsultasi, harga wajib diisi.' });
     }
 
     const existing = await PsikologSchedule.findOne({
@@ -17,6 +17,7 @@ router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
         date: date,
         start_time: start_time,
         end_time: end_time,
+        jenis_konsultasi: jenis_konsultasi,
       },
     });
     if (existing) {
@@ -29,6 +30,8 @@ router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
       start_time,
       end_time,
       kuota,
+      jenis_konsultasi,
+      harga,
       psikolog_id,
     });
 

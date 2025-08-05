@@ -40,6 +40,15 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 'tersedia',
       },
+      jenis_konsultasi: {
+        type: DataTypes.ENUM('Online', 'Offline'),
+        allowNull: false,
+        defaultValue: 'Online',
+      },
+      harga: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
     {
       tableName: 'psikolog_schedules',

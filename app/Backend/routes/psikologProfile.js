@@ -5,11 +5,11 @@ const { jwtAuthMiddleware, checkPsikolog } = require('../middlewares/auth');
 
 router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
   try {
-    const { nama_tempat_praktek, alamat_tempat_praktek } = req.body;
+    const { nama_tempat_praktek, alamat_tempat_praktek, pengalaman_dalam_tahun } = req.body;
     const psikolog_id = req.user.id;
 
-    if (!nama_tempat_praktek || !alamat_tempat_praktek) {
-      return res.status(400).json({ message: 'nama_tempat_praktek, alamat_tempat_praktek wajib diisi.' });
+    if (!nama_tempat_praktek || !alamat_tempat_praktek || !pengalaman_dalam_tahun) {
+      return res.status(400).json({ message: 'nama_tempat_praktek, alamat_tempat_praktek, pengalaman_dalam_tahun wajib diisi.' });
     }
     const existing = await PsikologProfile.findOne({ where: { psikolog_id } });
     if (existing) {
@@ -20,6 +20,7 @@ router.post('/', jwtAuthMiddleware, checkPsikolog, async (req, res) => {
     const data = await PsikologProfile.create({
       nama_tempat_praktek,
       alamat_tempat_praktek,
+      pengalaman_dalam_tahun,
       psikolog_id,
     });
 
