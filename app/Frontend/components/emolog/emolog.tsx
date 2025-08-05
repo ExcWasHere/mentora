@@ -11,7 +11,6 @@ import {
   Menu,
   X,
   LogOut,
-  Phone,
 } from "lucide-react";
 import { useLoaderData, Link } from "@remix-run/react";
 
