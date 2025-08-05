@@ -16,11 +16,23 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      pengalaman_dalam_tahun: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      no_wa: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isNumeric: true,
+          len: [10, 20],
+        },
+      },
       psikolog_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'users', 
+          model: 'users',
           key: 'id',
         },
         onUpdate: 'CASCADE',

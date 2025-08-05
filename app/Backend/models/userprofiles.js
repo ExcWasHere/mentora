@@ -43,6 +43,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATEONLY,
         allowNull: true,
       },
+      no_wa: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isNumeric: true,
+          len: [10, 20],
+        },
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -55,14 +63,13 @@ module.exports = (sequelize, DataTypes) => {
     {
       tableName: 'user_profiles',
       underscored: true,
-      timestamps: true, 
+      timestamps: true,
       createdAt: 'created_at',
       updatedAt: 'updated_at',
     }
   );
 
   UserProfile.associate = function (models) {
-
     UserProfile.belongsTo(models.User, {
       foreignKey: 'user_id',
       onDelete: 'CASCADE',
