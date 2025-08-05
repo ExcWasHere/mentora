@@ -8,7 +8,8 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "nodemon Node app/Backend/index.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "migrate": "sequelize db:migrate"
   },
   "dependencies": {
     "@remix-run/node": "^2.16.8",
