@@ -786,40 +786,6 @@ const ConsultationPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <button
-                onClick={() => {
-                  if (currentQueue.type === "online") {
-                    alert("Membuka ruang chat konsultasi...");
-                  } else {
-                    alert("Menampilkan peta menuju lokasi...");
-                  }
-                }}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-sky-100 text-violet-700 rounded-xl font-bold hover:bg-blue-200 transition-all duration-300"
-              >
-                {currentQueue.type === "online" ? (
-                  <>
-                    <MessageCircle className="w-5 h-5" />
-                    <span>Chat Room</span>
-                  </>
-                ) : (
-                  <>
-                    <MapPin className="w-5 h-5" />
-                    <span>Lokasi</span>
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() =>
-                  alert("Tunggu Persetujuan Psikolog yaa!")
-                }
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-green-100 text-green-700 rounded-xl font-bold hover:bg-green-200 transition-all duration-300"
-              >
-                <Phone className="w-5 h-5" />
-                <span>Call</span>
-              </button>
-            </div>
-
             <div className="flex gap-4">
               <button
                 onClick={() => setShowQueueModal(false)}
