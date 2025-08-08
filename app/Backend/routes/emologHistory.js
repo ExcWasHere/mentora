@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { Subdistrict, EmologHistory } = require('../models');
+const { Subdistrict, EmologHistory, District } = require('../models');
 const { jwtAuthMiddleware } = require('../middlewares/auth');
 const axios = require('axios');
+const district = require('../models/district');
+require('dotenv').config();
+const emologEndpoint = process.env.EMOLOG_ENDPOINT;
 
 router.post("/", jwtAuthMiddleware, async (req, res) => {
   try {
@@ -27,9 +30,9 @@ router.post("/", jwtAuthMiddleware, async (req, res) => {
       });
     }
 
-    const response = await axios.post("https://z7zb93qs-8000.asse.devtunnels.ms/api/predict", {
+    const response = await axios.post(emologEndpoint, {
       text: text,
-      subdistrict_id: subdistrict_id,
+      subdistrict_id: subdistrict_id
     });
 
     const { emotion_label } = response.data;
@@ -37,6 +40,7 @@ router.post("/", jwtAuthMiddleware, async (req, res) => {
     await EmologHistory.create({
       user_id: userId,
       subdistrict_id: subdistrict_id,
+      district_id: subdistrict.district_id,
       emotion_label,
       text_input: text,
       recorded_at: new Date(),
