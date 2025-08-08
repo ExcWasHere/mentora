@@ -621,15 +621,13 @@ const ConsultationPage = () => {
                       <User className="w-5 h-5" />
                       <span className="text-sm">Offline</span>
                     </button>
-                    <button
-                      onClick={() =>
-                        alert("Fitur profil detail akan segera hadir!")
-                      }
+                    <a
+                        href="/profile-psikolog"
                       className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-4 border-2 border-violet-600 text-violet-600 rounded-xl font-bold hover:bg-violet-50 transition-all duration-300"
                     >
                       <Stethoscope className="w-5 h-5" />
                       <span className="text-sm">Profil</span>
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
