@@ -13,7 +13,7 @@ router.get('/', jwtAuthMiddleware, async (req, res) => {
 
     const userProfile = await UserProfile.findOne({
       where: { user_id: userId },
-      attributes: ['user_id', 'district_id', 'subdistrict_id', 'gender', 'birthdate', 'no_wa', 'created_at', 'updated_at'],
+      attributes: ['user_id', 'district_id', 'subdistrict_id', 'gender', 'birthdate', 'created_at', 'updated_at'],
       include: [
         {
           model: District,
@@ -42,9 +42,9 @@ router.get('/', jwtAuthMiddleware, async (req, res) => {
 router.post('/', jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { district_id, subdistrict_id, gender, birthdate, no_wa } = req.body;
+    const { district_id, subdistrict_id, gender, birthdate } = req.body;
 
-    if (!district_id || !subdistrict_id || !gender || !birthdate || !no_wa) {
+    if (!district_id || !subdistrict_id || !gender || !birthdate) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -81,7 +81,6 @@ router.post('/', jwtAuthMiddleware, async (req, res) => {
       subdistrict_id,
       gender,
       birthdate,
-      no_wa,
     });
 
     res.status(201).json({
@@ -97,7 +96,7 @@ router.post('/', jwtAuthMiddleware, async (req, res) => {
 router.put('/', jwtAuthMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { district_id, subdistrict_id, gender, birthdate, no_wa } = req.body;
+    const { district_id, subdistrict_id, gender, birthdate } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: 'User ID required' });
@@ -146,9 +145,6 @@ router.put('/', jwtAuthMiddleware, async (req, res) => {
 
     if (birthdate !== undefined) {
       updateData.birthdate = birthdate;
-    }
-    if (no_wa !== undefined) {
-      updateData.no_wa = no_wa;
     }
 
     await UserProfile.update(updateData, {
