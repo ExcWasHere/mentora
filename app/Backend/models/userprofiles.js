@@ -43,14 +43,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATEONLY,
         allowNull: true,
       },
-      no_wa: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-          isNumeric: true,
-          len: [10, 20],
-        },
-      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,
