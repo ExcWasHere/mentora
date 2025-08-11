@@ -49,13 +49,13 @@ export default function RegisterPage() {
 
       switch (role) {
         case 'User':
-          window.location.href = '/personalize/user';
+          window.location.href = '/personalize-user';
           break;
         case 'Psikolog':
-          window.location.href = '/personalize/psikolog';
+          window.location.href = '/personalize-psikolog';
           break;
         case 'Pemerintah':
-          window.location.href = '/personalize/pemerintah';
+          window.location.href = '/personalize-pemerintah';
           break;
         default:
           window.location.href = '/dashboard';
