@@ -13,6 +13,7 @@ const userProfileRoutes = require('./routes/userProfile');
 const emologHistoryRoutes = require('./routes/emologHistory');
 const appointmentRoutes = require('./routes/appointment');
 const emologClusterRoutes = require('./routes/emologCluster');
+const aloraRoutes = require('./routes/alora')
 const db = require('./models');
 const emologRoutes = require('./routes/emolog');
 const app = express();
@@ -34,6 +35,8 @@ app.use('/api/appointment', appointmentRoutes);
 app.use('/api/profile', userProfileRoutes);
 app.use('/api/emolog-history', emologHistoryRoutes);
 app.use('/api/emolog-cluster', emologClusterRoutes);
+app.use('/api/alora', aloraRoutes)
+
 
 db.sequelize.sync().then(() => {
   console.log('Database synced');
