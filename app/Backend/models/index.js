@@ -14,7 +14,10 @@ db.Subdistrict = require('./subdistrict.js')(sequelize, Sequelize.DataTypes);
 db.EmologHistory = require('./emologhistories')(sequelize, Sequelize.DataTypes);
 db.PsikologProfile = require('./psikolog-profile')(sequelize, Sequelize.DataTypes);
 db.PsikologSchedule = require('./psikolog-schedule')(sequelize, Sequelize.DataTypes);
+db.ChatbotHistory = require('./chatbot-histories')(sequelize, Sequelize.DataTypes);
 db.Appointment = require('./appointment')(sequelize, Sequelize.DataTypes);
+db.ChatbotSession = require('./chatbot-sessions')(sequelize, Sequelize.DataTypes);
+
 Object.keys(db).forEach((modelName) => {
   if ('associate' in db[modelName]) {
     db[modelName].associate(db);

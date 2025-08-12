@@ -29,6 +29,16 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
+        district_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'districts',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
       emotion_label: {
         type: DataTypes.STRING,
         allowNull: false
@@ -69,6 +79,12 @@ module.exports = (sequelize, DataTypes) => {
 
     EmologHistory.belongsTo(models.Subdistrict, {
       foreignKey: 'subdistrict_id',
+      onDelete: 'SET NULL',
+      onUpdate: 'CASCADE'
+    });
+
+    EmologHistory.belongsTo(models.District, {
+      foreignKey: 'district_id',
       onDelete: 'SET NULL',
       onUpdate: 'CASCADE'
     });
