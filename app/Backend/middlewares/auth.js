@@ -76,5 +76,14 @@ const checkUser = (req, res, next) => {
     return res.status(403).json({ message: 'Forbidden. Bukan user' });
   }
 };
+const checkPemerintah = (req, res, next) => {
+  console.log(req.user.role);
 
-module.exports = { jwtAuthMiddleware, checkPsikolog, checkUser };
+  if (req.user.role == 'pemerintah') {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Forbidden. Bukan pemerintah' });
+  }
+};
+
+module.exports = { jwtAuthMiddleware, checkPsikolog, checkUser, checkPemerintah };
