@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
-  const Post = sequelize.define(
-    'Post',
+  const Comment = sequelize.define(
+    'Comment',
     {
       id: {
         allowNull: false,
@@ -8,13 +8,9 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      content: {
+      comment: {
         allowNull: false,
         type: DataTypes.TEXT,
-      },
-      images: {
-        allowNull: true,
-        type: DataTypes.JSON,
       },
       user_id: {
         type: DataTypes.INTEGER,
@@ -26,20 +22,28 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
+      post_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'posts', // nama tabel target (bukan nama model)
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
     },
     {
-      tableName: 'posts',
+      tableName: 'comments',
       underscored: true,
       timestamps: true,
     }
   );
 
-  Post.associate = function (models) {
-    Post.belongsTo(models.User, { foreignKey: 'user_id' });
-  };
-  Post.associate = function (models) {
-    Post.hasMany(models.Comment, { foreignKey: 'post_id' });
+  Comment.associate = function (models) {
+    Comment.belongsTo(models.Post, { foreignKey: 'post_id' });
+    Comment.belongsTo(models.User, { foreignKey: 'user_id' });
   };
 
-  return Post;
+  return Comment;
 };
