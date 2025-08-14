@@ -54,4 +54,46 @@ router.get('/getById/:id', async (req, res) => {
     res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
   }
 });
+router.put('/:id', jwtAuthMiddleware, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const comment = req.body;
+    const id = req.params.id;
+    if (!comment) {
+      return res.status(400).json({ message: 'comment harus diisi!' });
+    }
+    const check = await Comment.findOne({ where: { id: id, user_id: user_id } });
+    if (!check) {
+      return res.status(404).json({ message: 'comment tidak ditemukan' });
+    }
+    await Comment.update(comment, {
+      where: {
+        id: id,
+        user_id: user_id,
+      },
+    });
+    res.status(200).json({ message: 'Comment berhasil diupdate' });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
+  }
+});
+router.delete('/:id', jwtAuthMiddleware, async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const id = req.params.id;
+    const check = await Comment.findOne({ where: { id: id, user_id: user_id } });
+    if (!check) {
+      return res.status(404).json({ message: 'comment tidak ditemukan' });
+    }
+    await Comment.destroy({
+      where: {
+        id: id,
+        user_id: user_id,
+      },
+    });
+    res.status(200).json({ message: 'Comment berhasil dihapus' });
+  } catch (err) {
+    res.status(500).json({ message: 'Terjadi kesalahan', error: err.message });
+  }
+});
 module.exports = router;
