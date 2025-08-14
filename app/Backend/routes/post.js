@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { Post, User } = require('../models');
 const { postImage } = require('../utils/upload');
-const { jwtAuthMiddleware } = require('../middlewares/auth');
+const { jwtAuthMiddleware, checkUser } = require('../middlewares/auth');
 
-router.post('/', jwtAuthMiddleware, postImage.array('images', 5), async (req, res) => {
+router.post('/', jwtAuthMiddleware, checkUser, postImage.array('images', 5), async (req, res) => {
   try {
     const { content } = req.body;
     const user_id = req.user.id;

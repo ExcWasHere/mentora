@@ -8,6 +8,7 @@ db.sequelize = sequelize;
 db.User = require('./user')(sequelize, Sequelize.DataTypes);
 db.Emotion = require('./emotion')(sequelize, Sequelize.DataTypes);
 db.Post = require('./post')(sequelize, Sequelize.DataTypes);
+db.Comment = require('./comment')(sequelize, Sequelize.DataTypes);
 db.UserProfile = require('./userprofiles')(sequelize, Sequelize.DataTypes);
 db.District = require('./district.js')(sequelize, Sequelize.DataTypes);
 db.Subdistrict = require('./subdistrict.js')(sequelize, Sequelize.DataTypes);
