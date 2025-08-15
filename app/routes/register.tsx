@@ -44,6 +44,10 @@ export default function RegisterPage() {
     const result = await response.json();
     console.log("Register response:", result);
 
+    if (result.token) {
+    localStorage.setItem("token", result.token);
+  }
+
     if (response.ok) {
       const role = formData.role;
 

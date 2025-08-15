@@ -56,7 +56,6 @@ const mockSubdistricts: Record<string, Array<{ id: string; name: string }>> = {
 
 export default function PersonalizeUser({
   onSubmit,
-  onSkip,
   isLoading = false,
   errors = {},
   userEmail,
@@ -71,8 +70,13 @@ export default function PersonalizeUser({
     district_id?: string;
     subdistrict_id?: string;
   }>({});
-
+  const [token, setToken] = useState("");
   const [availableSubdistricts, setAvailableSubdistricts] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    const t = localStorage.getItem("token");
+    if (t) setToken(t);
+  }, []);
 
   useEffect(() => {
     if (districtId) {
@@ -128,29 +132,6 @@ export default function PersonalizeUser({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    if (onSubmit) {
-      onSubmit({
-        gender,
-        birthdate,
-        district_id: districtId,
-        subdistrict_id: subdistrictId,
-      });
-    }
-  };
-
-  const handleSkip = () => {
-    if (onSkip) {
-      onSkip();
-    }
-  };
-
   const displayErrors = { ...validationErrors, ...errors };
 
   return (
@@ -176,7 +157,8 @@ export default function PersonalizeUser({
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form method="post" className="space-y-6">
+            <input type="hidden" name="token" value={token} />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Jenis Kelamin
