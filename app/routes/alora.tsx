@@ -1,10 +1,10 @@
 import { json, type MetaFunction, type LoaderFunctionArgs } from "@remix-run/node";
 import { getSession } from "~/utils/session.server";
-import Forum from "~/Frontend/components/Forum/forum";
+import AloRa from "~/Frontend/components/Alora/alora";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "MenTora | Forum" },
+    { title: "MenTora | AloRa" },
     { name: "Greetings", content: "Welcome to MenTora!" },
   ];
 };
@@ -26,7 +26,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Index() {
   return (
     <>
-      <Forum />
+      <AloRa />
     </>
   );
 }

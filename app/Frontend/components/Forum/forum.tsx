@@ -374,7 +374,7 @@ const Forum = () => {
                     Forum Komunitas
                   </h1>
                   <p className="text-gray-600 mt-1 font-medium text-sm">
-                    Berbagi cerita dan saling mendukung, {getFirstName(userName)}! 💬
+                   Ayo berbagi cerita dan saling mendukung, {getFirstName(userName)}! 💬
                   </p>
                 </div>
               </div>

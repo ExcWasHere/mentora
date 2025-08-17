@@ -364,7 +364,7 @@ const ConsultationPage = () => {
                     Consultation
                   </h1>
                   <p className="text-gray-600 mt-1 font-medium text-sm">
-                    Temukan psikolog yang tepat untuk Anda,{" "}
+                    Temukan psikolog yang tepat untuk kamu,{" "}
                     {getFirstName(userName)}! 🏥
                   </p>
                 </div>
