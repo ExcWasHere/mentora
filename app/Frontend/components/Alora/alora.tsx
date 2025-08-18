@@ -21,6 +21,9 @@ import {
   Mic,
   MicOff,
   Loader2,
+  History,
+  Plus,
+  Clock,
 } from "lucide-react";
 import { Link, useLoaderData } from "@remix-run/react";
 
@@ -32,12 +35,35 @@ interface Message {
   typing?: boolean;
 }
 
+interface ChatSession {
+  id: string;
+  user_id: number;
+  title: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ChatHistory {
+  user_id: number;
+  session_id: string;
+  sender: 'user' | 'bot';
+  message: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const AloRa = () => {
   const [activeTab, setActiveTab] = useState("alora");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [message, setMessage] = useState("");
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  
   type LoaderData = {
     userId: string;
     userName?: string;
@@ -48,18 +74,14 @@ const AloRa = () => {
   const { userName = "Pengguna", token } = useLoaderData<LoaderData>();
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: "1",
-      content: `Halo ${
-        userName.split(" ")[0]
-      }! 👋 Saya AloRa, teman virtual kamu yang siap mendengarkan dan membantu kapan saja. Apa yang ingin kamu ceritakan hari ini?`,
+      id: "welcome",
+      content: `Halo ${userName.split(" ")[0]}! 👋 Saya AloRa, teman virtual kamu yang siap mendengarkan dan membantu kapan saja. Apa yang ingin kamu ceritakan hari ini?`,
       isUser: false,
       timestamp: new Date(),
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
-  const [chatMode, setChatMode] = useState("casual");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -70,6 +92,77 @@ const AloRa = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    loadChatSessions();
+  }, []);
+
+  const loadChatSessions = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/alora/sessions", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const sessions = await response.json();
+        setChatSessions(sessions);
+      } else {
+        console.error("Failed to load chat sessions");
+      }
+    } catch (error) {
+      console.error("Error loading chat sessions:", error);
+    }
+  };
+
+  const loadChatHistory = async (sessionId: string) => {
+    setLoadingHistory(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/alora/chat/${sessionId}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const history: ChatHistory[] = await response.json();
+        const formattedMessages: Message[] = history.map((item, index) => ({
+          id: `${sessionId}-${index}`,
+          content: item.message,
+          isUser: item.sender === 'user',
+          timestamp: new Date(item.created_at),
+        }));
+        
+        setMessages(formattedMessages);
+        setCurrentSessionId(sessionId);
+        setShowHistory(false);
+      } else {
+        console.error("Failed to load chat history");
+      }
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const startNewChat = () => {
+    setMessages([
+      {
+        id: "welcome",
+        content: `Halo ${userName.split(" ")[0]}! 👋 Saya AloRa, teman virtual kamu yang siap mendengarkan dan membantu kapan saja. Apa yang ingin kamu ceritakan hari ini?`,
+        isUser: false,
+        timestamp: new Date(),
+      },
+    ]);
+    setCurrentSessionId(null);
+    setShowHistory(false);
+  };
 
   const getFirstName = (fullName: string): string => {
     if (!fullName || typeof fullName !== "string") return "Pengguna";
@@ -136,21 +229,41 @@ const AloRa = () => {
     setIsTyping(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/alora/new-chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          prompt: message,
-          session_id: sessionId,
-        }),
-      });
+      let response;
+      
+      if (currentSessionId) {
+        // Continue existing conversation
+        response = await fetch(`http://localhost:5000/api/alora/chat/${currentSessionId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            prompt: message,
+          }),
+        });
+      } else {
+        // Start new conversation
+        response = await fetch("http://localhost:5000/api/alora/new-chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            prompt: message,
+          }),
+        });
+      }
 
-      const data = await res.json();
-      if (!sessionId && data.session_id) {
-        setSessionId(data.session_id);
+      const data = await response.json();
+      
+      // If it's a new chat, set the session ID
+      if (!currentSessionId && data.session_id) {
+        setCurrentSessionId(data.session_id);
+        // Reload chat sessions to include the new one
+        loadChatSessions();
       }
 
       const aiResponse: Message = {
@@ -192,6 +305,26 @@ const AloRa = () => {
       setTimeout(() => {
         setIsListening(false);
       }, 3000);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } else if (diffInHours < 48) {
+      return "Kemarin";
+    } else {
+      return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+      });
     }
   };
 
@@ -248,9 +381,83 @@ const AloRa = () => {
         />
       )}
 
-      {/* Sidebar */}
+      {/* History Sidebar Overlay */}
+      {showHistory && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-50"
+          onClick={() => setShowHistory(false)}
+        />
+      )}
+
+      {/* History Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-violet-600 shadow-2xl transform transition-transform duration-300 z-50 ${
+        className={`fixed inset-y-0 right-0 w-80 bg-white shadow-2xl transform transition-transform duration-300 z-50 ${
+          showHistory ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-violet-50">
+          <div className="flex items-center space-x-3">
+            <History className="w-6 h-6 text-violet-600" />
+            <h3 className="text-lg font-bold text-violet-800">Riwayat Chat</h3>
+          </div>
+          <button
+            onClick={() => setShowHistory(false)}
+            className="text-gray-500 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-4">
+          <button
+            onClick={startNewChat}
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-all duration-300 shadow-lg hover:shadow-xl mb-4"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="font-medium">Chat Baru</span>
+          </button>
+
+          <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {chatSessions.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">Belum ada riwayat chat</p>
+              </div>
+            ) : (
+              chatSessions.map((session) => (
+                <button
+                  key={session.id}
+                  onClick={() => loadChatHistory(session.id)}
+                  disabled={loadingHistory}
+                  className={`w-full text-left p-3 rounded-xl transition-all duration-300 hover:bg-violet-50 border border-gray-100 hover:border-violet-200 ${
+                    currentSessionId === session.id
+                      ? "bg-violet-100 border-violet-300"
+                      : "bg-white"
+                  } ${loadingHistory ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {session.title || "Chat tanpa judul"}
+                      </p>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <p className="text-xs text-gray-500">
+                          {formatDate(session.last_message_at || session.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 w-64 bg-violet-600 shadow-2xl transform transition-transform duration-300 z-40 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
@@ -332,6 +539,14 @@ const AloRa = () => {
 
               {/* Header Actions */}
               <div className="flex items-center space-x-2 sm:space-x-4">
+                <button
+                  onClick={() => setShowHistory(true)}
+                  className="flex items-center px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
+                  <History className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+                  <span className="hidden sm:inline font-medium">History</span>
+                </button>
+
                 <div className="relative">
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
@@ -367,6 +582,16 @@ const AloRa = () => {
 
         {/* Chat Container */}
         <div className="flex-1 flex flex-col">
+          {/* Loading History Overlay */}
+          {loadingHistory && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+              <div className="flex items-center space-x-3">
+                <Loader2 className="w-6 h-6 animate-spin text-violet-600" />
+                <span className="text-violet-600 font-medium">Memuat riwayat chat...</span>
+              </div>
+            </div>
+          )}
+
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="max-w-4xl mx-auto space-y-6">
@@ -444,7 +669,7 @@ const AloRa = () => {
           </div>
 
           {/* Quick Actions */}
-          {messages.length <= 1 && (
+          {messages.length <= 1 && !currentSessionId && (
             <div className="px-4 sm:px-6 lg:px-8 py-4">
               <div className="max-w-4xl mx-auto">
                 <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
