@@ -48,6 +48,9 @@ module.exports = (sequelize, DataTypes) => {
     User.hasOne(models.UserProfile, { foreignKey: 'user_id' });
   };
   User.associate = function (models) {
+    User.hasOne(models.StreakSelfHarm, { foreignKey: 'user_id' });
+  };
+  User.associate = function (models) {
     User.hasOne(models.PsikologProfile, { foreignKey: 'psikolog_id' });
   };
 
