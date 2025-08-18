@@ -1,21 +1,42 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { Op, where } = require('sequelize');
-const { jwtAuthMiddleware, checkPemerintah } = require('../middlewares/auth');
-const { EmologHistory, sequelize, Subdistrict, District, User, UserProfile } = require('../models');
-const { use } = require('react');
+const { Op, where } = require("sequelize");
+const axios = require("axios");
+const { jwtAuthMiddleware } = require("../middlewares/auth");
+const {
+  EmologHistory,
+  sequelize,
+  Subdistrict,
+  District,
+  User,
+  UserProfile,
+} = require("../models");
+const { use } = require("react");
+const analyzeEndpoint = process.env.ANALYZE_ENDPOINT;
 
-router.get('/', jwtAuthMiddleware, checkPemerintah, async (req, res) => {
+router.get("/", jwtAuthMiddleware, async (req, res) => {
   try {
-    const { group_by = 'subdistrict', start_date, end_date, emotion, gender } = req.query;
+    const {
+      group_by = "subdistrict",
+      start_date,
+      end_date,
+      emotion,
+      gender,
+      analyze = "false"
+    } = req.query;
+
+    const userProfileWhere = {};
+    if (typeof gender === "string" && gender.trim() !== "") {
+      userProfileWhere.gender = gender.trim();
+    }
 
     const userProfile = await UserProfile.findAll({
-      where: { gender: gender },
-      attributes: ['user_id', 'gender'],
+      where: userProfileWhere,
+      attributes: ["user_id", "gender"],
       include: [
         {
           model: User,
-          attributes: ['id'],
+          attributes: ["id"],
           required: false,
         },
       ],
@@ -23,14 +44,14 @@ router.get('/', jwtAuthMiddleware, checkPemerintah, async (req, res) => {
 
     const userIds = userProfile.map((up) => up.user_id);
 
-    let zoneColumn = 'subdistrict_id';
+    let zoneColumn = "subdistrict_id";
     let zoneModel = Subdistrict;
-    let zoneAlias = 'Subdistrict';
+    let zoneAlias = "Subdistrict";
 
-    if (group_by === 'district') {
-      zoneColumn = 'district_id';
+    if (group_by === "district") {
+      zoneColumn = "district_id";
       zoneModel = District;
-      zoneAlias = 'District';
+      zoneAlias = "District";
     }
 
     const whereConditions = {};
@@ -56,7 +77,7 @@ router.get('/', jwtAuthMiddleware, checkPemerintah, async (req, res) => {
     }
 
     if (emotion) {
-      const emotionList = emotion.split(',').map((e) => e.trim());
+      const emotionList = emotion.split(",").map((e) => e.trim());
       whereConditions.emotion_label = {
         [Op.in]: emotionList,
       };
@@ -65,16 +86,28 @@ router.get('/', jwtAuthMiddleware, checkPemerintah, async (req, res) => {
     const includeModels = [
       {
         model: zoneModel,
-        attributes: ['id', 'name'],
+        attributes: ["id", "name"],
         required: false,
       },
     ];
 
     const rawData = await EmologHistory.findAll({
-      attributes: [zoneColumn, [sequelize.fn('COUNT', sequelize.col('emotion_label')), 'emotion_count'], 'emotion_label'],
+      attributes: [
+        zoneColumn,
+        [
+          sequelize.fn("COUNT", sequelize.col("emotion_label")),
+          "emotion_count",
+        ],
+        "emotion_label",
+      ],
       include: includeModels,
       where: whereConditions,
-      group: [zoneColumn, 'emotion_label', `${zoneAlias}.id`, `${zoneAlias}.name`],
+      group: [
+        zoneColumn,
+        "emotion_label",
+        `${zoneAlias}.id`,
+        `${zoneAlias}.name`,
+      ],
       raw: true,
     });
 
@@ -82,8 +115,8 @@ router.get('/', jwtAuthMiddleware, checkPemerintah, async (req, res) => {
     rawData.forEach((item) => {
       const zoneId = item[`${zoneAlias}.id`];
       const zoneName = item[`${zoneAlias}.name`];
-      const emotion = item['emotion_label'];
-      const count = parseInt(item['emotion_count']);
+      const emotion = item["emotion_label"];
+      const count = parseInt(item["emotion_count"]);
 
       if (!grouped[zoneName]) {
         grouped[zoneName] = {
@@ -107,10 +140,28 @@ router.get('/', jwtAuthMiddleware, checkPemerintah, async (req, res) => {
       });
     }
 
+    if (String(analyze).toLowerCase() === "true") {
+      try {
+        const prompt = JSON.stringify(result);
+
+        const response = await axios.post(analyzeEndpoint, { prompt });
+        const { insights } = response.data;
+
+        return res.status(200).json({ data: result, insights });
+      } catch (err) {
+        console.error("Forward to DSS failed:", err.message);
+        return res.status(200).json({
+          data: result,
+          insights: null,
+          analyze_error: "Gagal menghubungi layanan DSS",
+        });
+      }
+    }
+
     res.status(200).json(result);
   } catch (error) {
-    console.error('Error fetching emolog cluster:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching emolog cluster:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
