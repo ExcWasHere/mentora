@@ -18,7 +18,7 @@ db.PsikologSchedule = require('./psikolog-schedule')(sequelize, Sequelize.DataTy
 db.ChatbotHistory = require('./chatbot-histories')(sequelize, Sequelize.DataTypes);
 db.Appointment = require('./appointment')(sequelize, Sequelize.DataTypes);
 db.ChatbotSession = require('./chatbot-sessions')(sequelize, Sequelize.DataTypes);
-
+db.StreakSelfHarm = require('./streak_self_harm')(sequelize, Sequelize.DataTypes);
 Object.keys(db).forEach((modelName) => {
   if ('associate' in db[modelName]) {
     db[modelName].associate(db);
