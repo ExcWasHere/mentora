@@ -4,6 +4,7 @@ type SessionData = {
   userId: string;
   userEmail: string;
   userName?: string;
+  token: string;
 };
 
 type SessionFlashData = {

@@ -42,9 +42,10 @@ const AloRa = () => {
     userId: string;
     userName?: string;
     userEmail?: string;
+    token: string;
   };
 
-  const { userName = "Pengguna" } = useLoaderData<LoaderData>();
+  const { userName = "Pengguna", token } = useLoaderData<LoaderData>();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -56,6 +57,7 @@ const AloRa = () => {
     },
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [chatMode, setChatMode] = useState("casual");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -132,25 +134,48 @@ const AloRa = () => {
     setMessages((prev) => [...prev, userMessage]);
     setMessage("");
     setIsTyping(true);
-    setTimeout(() => {
-      const responses = [
-        "Terima kasih sudah berbagi! Saya mengerti perasaanmu. Mari kita bahas lebih dalam tentang hal ini. 🤗",
-        "Wah, ceritamu menarik sekali! Aku senang kamu mau terbuka denganku. Bagaimana perasaanmu setelah menceritakan ini?",
-        "Saya mendengarkan dengan seksama. Sepertinya kamu sedang mengalami hal yang cukup berat. Kamu sudah sangat berani untuk berbagi ini denganku.",
-        "Hmm, interesting! Aku bisa merasakan emosi dari kata-katamu. Apakah ada hal lain yang ingin kamu ceritakan tentang ini?",
-        "Kamu tahu? Setiap perasaan yang kamu rasakan itu valid. Aku di sini untuk mendengarkan dan membantu sebisa mungkin. 💙",
-      ];
+
+    try {
+      const res = await fetch("http://localhost:5000/api/alora/new-chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prompt: message,
+          session_id: sessionId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!sessionId && data.session_id) {
+        setSessionId(data.session_id);
+      }
 
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: responses[Math.floor(Math.random() * responses.length)],
+        content: data.response || "Maaf, aku belum bisa menjawab saat ini 🙏",
         isUser: false,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, aiResponse]);
+    } catch (error) {
+      console.error("Error kirim pesan:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          content: "⚠️ Gagal terhubung ke server.",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1500 + Math.random() * 1000);
+    }
+
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -299,7 +324,8 @@ const AloRa = () => {
                     </div>
                   </div>
                   <p className="text-gray-600 mt-1 font-medium text-sm">
-                    Your Bestie AI, siap mendengarkan {getFirstName(userName)} 24/7 ✨
+                    Your Bestie AI, siap mendengarkan {getFirstName(userName)}{" "}
+                    24/7 ✨
                   </p>
                 </div>
               </div>

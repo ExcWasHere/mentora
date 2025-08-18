@@ -75,11 +75,13 @@ export async function action({ request }: ActionFunctionArgs) {
     session.set("userId", user.id.toString());
     session.set("userEmail", user.email);
     session.set("userName", user.name);
+    session.set("token", user.token);
     
     console.log("Setting session data:", {
       userId: user.id.toString(),
       userEmail: user.email,
-      userName: user.name
+      userName: user.name,
+      token: user.token,
     });
 
     return redirect("/dashboard", {
