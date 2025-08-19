@@ -75,13 +75,48 @@ export async function action({ request }: ActionFunctionArgs) {
     session.set("userId", user.id.toString());
     session.set("userEmail", user.email);
     session.set("userName", user.name);
+    session.set("role", user.role);
     session.set("token", user.token);
     
+    if (user.role === "user") {
+      const profileRes = await fetch("http://localhost:5000/api/profile", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (profileRes.status === 404) {
+        return redirect("/personalize-user", {
+          headers: { "Set-Cookie": await commitSession(session) },
+        });
+      }
+    }
+
+    if (user.role === "pemerintah") {
+      const profileRes = await fetch("http://localhost:5000/api/", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (profileRes.status === 404) {
+        return redirect("/personalize-gov", {
+          headers: { "Set-Cookie": await commitSession(session) },
+        });
+      }
+    }
+
+    if (user.role === "psikolog") {
+      const profileRes = await fetch("http://localhost:5000/api/psikolog-profile", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (profileRes.status === 404) {
+        return redirect("/personalize-psikolog", {
+          headers: { "Set-Cookie": await commitSession(session) },
+        });
+      }
+    }
+
     console.log("Setting session data:", {
       userId: user.id.toString(),
       userEmail: user.email,
       userName: user.name,
-      token: user.token,
+      role: user.role,
+      token: user.token
     });
 
     return redirect("/dashboard", {

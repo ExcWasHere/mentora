@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 
 interface PersonalizeProps {
+  token: string;
   onSubmit?: (data: {
+    token: string;
     gender: string;
     birthdate: string;
     district_id: string;
@@ -55,7 +57,7 @@ const mockSubdistricts: Record<string, Array<{ id: string; name: string }>> = {
 };
 
 export default function PersonalizeUser({
-  onSubmit,
+  token,
   isLoading = false,
   errors = {},
   userEmail,
@@ -70,13 +72,9 @@ export default function PersonalizeUser({
     district_id?: string;
     subdistrict_id?: string;
   }>({});
-  const [token, setToken] = useState("");
-  const [availableSubdistricts, setAvailableSubdistricts] = useState<Array<{ id: string; name: string }>>([]);
-
-  useEffect(() => {
-    const t = localStorage.getItem("token");
-    if (t) setToken(t);
-  }, []);
+  const [availableSubdistricts, setAvailableSubdistricts] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
 
   useEffect(() => {
     if (districtId) {
@@ -106,8 +104,11 @@ export default function PersonalizeUser({
       const selectedDate = new Date(birthdate);
       let age = today.getFullYear() - selectedDate.getFullYear();
       const monthDiff = today.getMonth() - selectedDate.getMonth();
-      
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < selectedDate.getDate())) {
+
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < selectedDate.getDate())
+      ) {
         age--;
       }
 
@@ -134,6 +135,41 @@ export default function PersonalizeUser({
 
   const displayErrors = { ...validationErrors, ...errors };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    try {
+      const res = await fetch("http://localhost:5000/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          gender,
+          birthdate,
+          district_id: districtId,
+          subdistrict_id: subdistrictId,
+        }),
+      });
+
+      const data = await res.json();
+      console.log("Profile response:", data);
+
+      if (res.ok) {
+        alert("Profil berhasil disimpan 🎉");
+        window.location.href = "/dashboard";
+      } else {
+        alert(data.error || "Gagal menyimpan profil");
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      alert("Ups! Terjadi kesalahan jaringan");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-sky-50 to-purple-50 py-8">
       <img
@@ -148,17 +184,18 @@ export default function PersonalizeUser({
               MenTora
             </h2>
             <p className="text-gray-600 mt-2">
-              Ceritakan sedikit tentang diri Anda untuk pengalaman yang lebih personal.
+              Ceritakan sedikit tentang diri Anda untuk pengalaman yang lebih
+              personal.
             </p>
             {userEmail && (
               <p className="text-sm text-gray-500 mt-1">
-                Melengkapi profil untuk: <span className="font-medium">{userEmail}</span>
+                Melengkapi profil untuk:{" "}
+                <span className="font-medium">{userEmail}</span>
               </p>
             )}
           </div>
 
-          <form method="post" className="space-y-6">
-            <input type="hidden" name="token" value={token} />
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Jenis Kelamin
@@ -175,7 +212,9 @@ export default function PersonalizeUser({
                   />
                   <div className="w-full p-4 text-center border-2 border-purple-200 rounded-lg peer-checked:border-purple-500 peer-checked:bg-purple-50 hover:border-purple-300 transition-all">
                     <div className="text-2xl mb-2">👨</div>
-                    <span className="text-sm font-medium text-gray-700">Laki-laki</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Laki-laki
+                    </span>
                   </div>
                 </label>
                 <label className="relative cursor-pointer">
@@ -189,7 +228,9 @@ export default function PersonalizeUser({
                   />
                   <div className="w-full p-4 text-center border-2 border-purple-200 rounded-lg peer-checked:border-purple-500 peer-checked:bg-purple-50 hover:border-purple-300 transition-all">
                     <div className="text-2xl mb-2">👩</div>
-                    <span className="text-sm font-medium text-gray-700">Perempuan</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Perempuan
+                    </span>
                   </div>
                 </label>
               </div>
@@ -263,7 +304,9 @@ export default function PersonalizeUser({
                 className="mt-1 w-full px-4 py-3 border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-purple-400 bg-white transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">
-                  {districtId ? "Pilih Kecamatan" : "Pilih Kabupaten/Kota terlebih dahulu"}
+                  {districtId
+                    ? "Pilih Kecamatan"
+                    : "Pilih Kabupaten/Kota terlebih dahulu"}
                 </option>
                 {availableSubdistricts.map((subdistrict) => (
                   <option key={subdistrict.id} value={subdistrict.id}>
@@ -316,13 +359,14 @@ export default function PersonalizeUser({
 
             <div className="text-center">
               <p className="text-xs text-gray-500">
-                Informasi ini akan membantu kami memberikan konten yang lebih relevan untuk Anda.
+                Informasi ini akan membantu kami memberikan konten yang lebih
+                relevan untuk Anda.
               </p>
             </div>
           </form>
         </div>
 
-         {/* Right panel - Illustration */}
+        {/* Right panel - Illustration */}
         <div className="hidden lg:block bg-gradient-to-br from-sky-200 via-purple-100 to-purple-200 p-10 relative overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center z-10">
