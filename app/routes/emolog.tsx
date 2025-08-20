@@ -20,6 +20,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     userId: session.get("userId"),
     userName: session.get("userName"),
     userEmail: session.get("userEmail"),
+    token: session.get("token"),
   });
 }
 

@@ -65,20 +65,20 @@ const sidebarItems = [
 const EmologPage = () => {
   const [activeTab, setActiveTab] = useState("emotions");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  
+
   type LoaderData = {
     userId: string;
     userName?: string;
     userEmail?: string;
+    token: string;
   };
 
   const { userId, userName = "Pengguna" } = useLoaderData<LoaderData>();
   const [interactionWith, setInteractionWith] = useState("Teman");
-  
+
   type EmologHistory = {
     id: number;
     emotion: string;
@@ -89,46 +89,63 @@ const EmologPage = () => {
     date?: string;
     time?: string;
   };
-  
+
   const [history, setHistory] = useState<EmologHistory[]>([]);
-  
+
   const fetchEmolog = async () => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/emolog?user_id=${userId}`
-      );
-      const data = await res.json();
-      console.log("Fetched history:", data);
-      setHistory(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Gagal fetch riwayat emosi:", error);
-      setHistory([]);
-    }
-  };
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/emolog-history?user_id=${userId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error("Unauthorized");
+
+    const data = await res.json();
+    setHistory(Array.isArray(data) ? data : []);
+  } catch (error) {
+    console.error("Gagal fetch riwayat emosi:", error);
+    setHistory([]);
+  }
+};
+
 
   useEffect(() => {
     fetchEmolog();
   }, [userId]);
 
   const handleSave = async () => {
-    console.log("Submitting emotion...");
-    if (!selected) return;
-    const payload = {
-      user_id: userId,
-      emotion: selected,
-      note,
-      interaction_with: interactionWith,
-      activity: "Ngobrol bareng",
-      mood: "Positif",
-      date: new Date().toISOString().split("T")[0],
-    };
+    if (!note.trim()) {
+      alert("Tolong tuliskan perasaanmu dulu ya 😊");
+      return;
+    }
 
     try {
+      const aiRes = await fetch("http://localhost:5000/api/emolog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: note }),
+      });
+      const aiData = await aiRes.json();
+      console.log("AI analysis:", aiData);
+      const payload = {
+        user_id: userId,
+        emotion: aiData.emotion || "Tidak Terdeteksi",
+        note,
+        interaction_with: interactionWith,
+        activity: "Jurnal Harian",
+        mood: aiData.mood || "Netral",
+        date: new Date().toISOString().split("T")[0],
+      };
+
       const res = await fetch("http://localhost:5000/api/emolog", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -136,23 +153,28 @@ const EmologPage = () => {
       console.log("Response from server:", result);
 
       if (!res.ok) {
-        alert("Gagal menyimpan emosi 😢");
-        console.error("Server error:", result?.error || res.statusText);
+        alert("Gagal menyimpan catatan 😢");
       } else {
-        alert("Berhasil menyimpan emosi! 💙");
+        alert("Berhasil menyimpan catatan! 💙");
         setNote("");
-        setSelected(null);
         fetchEmolog();
       }
     } catch (error) {
-      console.error("Network error saat menyimpan emosi:", error);
+      console.error("Error saving journal:", error);
       alert("Ups! Terjadi kesalahan jaringan 😢");
     }
   };
 
   const handleDelete = async (id: number) => {
     if (confirm("Apakah kamu yakin ingin menghapus emosi ini?")) {
-      setHistory(history.filter((h) => h.id !== id));
+      try {
+        await fetch(`http://localhost:5000/api/emolog/${id}`, {
+          method: "DELETE",
+        });
+        setHistory(history.filter((h) => h.id !== id));
+      } catch (err) {
+        console.error("Gagal hapus data:", err);
+      }
     }
   };
 
@@ -188,7 +210,7 @@ const EmologPage = () => {
     </div>
   );
 
-  const SidebarItem = ({ item }: { item: typeof sidebarItems[0] }) => (
+  const SidebarItem = ({ item }: { item: (typeof sidebarItems)[0] }) => (
     <Link
       to={item.href}
       onClick={() => {
@@ -313,7 +335,8 @@ const EmologPage = () => {
                     Emotion Log
                   </h1>
                   <p className="text-gray-600 mt-1 font-medium text-sm">
-                    Catat dan pantau emosimu setiap hari, {getFirstName(userName)}! 🌟
+                    Catat dan pantau emosimu setiap hari,{" "}
+                    {getFirstName(userName)}! 🌟
                   </p>
                 </div>
               </div>
@@ -361,38 +384,15 @@ const EmologPage = () => {
               <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">
                 Bagaimana perasaanmu hari ini?
               </h3>
-              
-              {/* Emotion Options */}
-              <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
-                {EMOTION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setSelected(opt.key)}
-                    className={`p-3 sm:p-4 rounded-2xl flex flex-col items-center transition-all duration-300 transform hover:scale-105 shadow-md ${
-                      selected === opt.key
-                        ? "ring-2 ring-violet-400 bg-violet-50 shadow-lg"
-                        : "bg-sky-100 hover:bg-blue-200"
-                    }`}
-                  >
-                    <span className="text-2xl sm:text-3xl mb-2">{opt.emoji}</span>
-                    <span className="text-xs sm:text-sm font-medium text-violet-700">
-                      {opt.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
 
               {/* Note Input */}
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Catatan (opsional)
-                </label>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Ceritakan lebih detail tentang perasaanmu hari ini..."
+                  placeholder="Tulis perasaanmu secara bebas..."
                   className="w-full border border-gray-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-300 resize-none"
-                  rows={3}
+                  rows={5}
                 />
               </div>
 
@@ -420,11 +420,10 @@ const EmologPage = () => {
 
               {/* Save Button */}
               <button
-                disabled={!selected}
                 onClick={handleSave}
-                className="w-full bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="w-full bg-violet-600 text-white py-4 rounded-xl hover:bg-violet-700 font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                {selected ? "Simpan Emosi 💜" : "Pilih Emosi Terlebih Dahulu"}
+                Simpan Catatan 💜
               </button>
             </div>
 
@@ -438,7 +437,7 @@ const EmologPage = () => {
                   {history.length} Catatan
                 </span>
               </div>
-              
+
               {history.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -489,13 +488,13 @@ const EmologPage = () => {
                           </span>
                         </div>
                       </div>
-                      
+
                       {h.note && (
                         <p className="text-sm text-gray-700 mt-2 bg-white p-3 rounded-lg border border-gray-100">
                           "{h.note}"
                         </p>
                       )}
-                      
+
                       <div className="flex justify-end mt-3">
                         <button
                           onClick={() => handleDelete(h.id)}
