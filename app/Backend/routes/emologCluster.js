@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Op, where } = require("sequelize");
 const axios = require("axios");
-const { jwtAuthMiddleware } = require("../middlewares/auth");
+const { jwtAuthMiddleware, checkPemerintah } = require("../middlewares/auth");
 const {
   EmologHistory,
   sequelize,
@@ -14,7 +14,7 @@ const {
 const { use } = require("react");
 const analyzeEndpoint = process.env.ANALYZE_ENDPOINT;
 
-router.get("/", jwtAuthMiddleware, async (req, res) => {
+router.get("/", jwtAuthMiddleware, checkPemerintah,  async (req, res) => {
   try {
     const {
       group_by = "subdistrict",
