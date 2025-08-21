@@ -28,39 +28,49 @@ import {
 } from "recharts";
 import { Link } from "@remix-run/react";
 
-type Emotion = "Sangat Baik" | "Baik" | "Biasa" | "Sedih" | "Cemas" | "Marah";
+type Emotion = "Bersyukur" | "Senang" | "Biasa" | "Sedih" | "Stress" | "Marah";
 
 const emotionToScore: Record<Emotion, number> = {
-  "Sangat Baik": 5,
-  Baik: 4,
+  Bersyukur: 5,
+  Senang: 4,
   Biasa: 3,
   Sedih: 2,
-  Cemas: 1,
-  Marah: 0,
+  Marah: 1,
+  Stress: 0,
+};
+
+const emotionIcon: Record<Emotion, string> = {
+  Bersyukur: "🙏",
+  Senang: "😊",
+  Biasa: "😐",
+  Sedih: "😢",
+  Stress: "😫",
+  Marah: "😡",
 };
 
 interface DashboardProps {
   userName: string;
   userId: string;
   userEmail: string;
+  token: string;
 }
 
 interface EmologItem {
   id: string;
-  interaction_with?: string;
-  activity?: string;
-  date?: string;
-  emotion?: string;
+  emotion_label: Emotion;
+  text_input?: string;
+  recorded_at: string;
+  subdistrict_id?: number;
 }
 
-const Dashboard = ({ userName, userId }: DashboardProps) => {
+const Dashboard = ({ userName, userId, token }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [animateStats, setAnimateStats] = useState(false);
   const [emologData, setEmologData] = useState<EmologItem[]>([]);
-  const [emotionStats, setEmotionStats] = useState<Record<string, number>>({});
+  const [, setEmotionStats] = useState<Record<string, number>>({});
   const [recentInteractions, setRecentInteractions] = useState<
     {
       id: string;
@@ -75,27 +85,32 @@ const Dashboard = ({ userName, userId }: DashboardProps) => {
     const fetchEmologData = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/emolog?user_id=${userId}&period=7`
+          `http://localhost:5000/api/emolog-history?period=7`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
         const data = await res.json();
         const emotionCount: Record<string, number> = {};
-        const interactions: EmologItem[] = [];
 
         data.forEach((entry: EmologItem) => {
-          emotionCount[entry.emotion] = (emotionCount[entry.emotion] || 0) + 1;
-          if (entry.interaction_with) interactions.push(entry);
+          emotionCount[entry.emotion_label] =
+            (emotionCount[entry.emotion_label] || 0) + 1;
         });
-
         setEmotionStats(emotionCount);
         setEmologData(data);
         setRecentInteractions(
-          interactions.slice(0, 3).map((item) => ({
+          data.slice(0, 3).map((item) => ({
             id: item.id,
-            type: item.interaction_with,
-            activity: item.activity,
-            time: item.date,
-            sentiment: item.emotion as Emotion,
-            avatar: item.interaction_with?.slice(0, 2).toUpperCase() || "??",
+            type: "Diary",
+            activity: item.text_input || "-",
+            time: new Date(item.recorded_at).toLocaleString("id-ID"),
+            sentiment: item.emotion_label,
+            avatar: emotionIcon[item.emotion_label] || "🙂",
           }))
         );
       } catch (error) {
@@ -106,27 +121,17 @@ const Dashboard = ({ userName, userId }: DashboardProps) => {
     };
 
     fetchEmologData();
-  }, [userId]);
+  }, [userId, token]);
 
   const chartData = emologData.map((item) => ({
-    date: item.date,
-    score: emotionToScore[item.emotion as Emotion] ?? 0,
+    date: new Date(item.recorded_at).toLocaleDateString("id-ID"),
+    score: emotionToScore[item.emotion_label as Emotion] ?? 0,
   }));
 
   const calculateAverageEmotion = () => {
-    const skor = {
-      "Sangat Baik": 5,
-      Baik: 4,
-      Biasa: 3,
-      Sedih: 2,
-      Cemas: 1,
-      Marah: 0,
-    };
-
     if (!emologData.length) return 0;
-
     const total = emologData.reduce(
-      (sum, item) => sum + (skor[item.emotion] ?? 0),
+      (sum, item) => sum + (emotionToScore[item.emotion_label] ?? 0),
       0
     );
     return (total / emologData.length).toFixed(1);
@@ -247,7 +252,7 @@ const Dashboard = ({ userName, userId }: DashboardProps) => {
     </div>
   );
 
-  const SidebarItem = ({ item }: { item: typeof sidebarItems[0] }) => (
+  const SidebarItem = ({ item }: { item: (typeof sidebarItems)[0] }) => (
     <Link
       to={item.href}
       onClick={() => {
@@ -280,7 +285,13 @@ const Dashboard = ({ userName, userId }: DashboardProps) => {
     </Link>
   );
 
-  const StatsCard = ({ card, index }: { card: typeof statsCards[0], index: number }) => (
+  const StatsCard = ({
+    card,
+    index,
+  }: {
+    card: (typeof statsCards)[0];
+    index: number;
+  }) => (
     <div
       className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 transform border border-gray-100 ${
         animateStats ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
@@ -519,35 +530,43 @@ const Dashboard = ({ userName, userId }: DashboardProps) => {
                     }`}
                     style={{ transitionDelay: `${(index + 4) * 100}ms` }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-violet-600 rounded-2xl flex items-center justify-center mr-3 sm:mr-4 shadow-md">
-                          <span className="text-white font-bold text-xs sm:text-sm">
-                            {interaction.avatar}
-                          </span>
-                        </div>
-                        <div>
+                    <div className="flex items-start space-x-4">
+                      {/* Avatar Icon */}
+                      <div className="w-12 h-12 flex items-center justify-center bg-white rounded-xl shadow-md text-2xl">
+                        {emotionIcon[interaction.sentiment as Emotion]}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        {/* Header: Diary + Waktu */}
+                        <div className="flex justify-between items-start mb-1">
                           <h4 className="font-bold text-gray-800 text-sm sm:text-base">
                             {interaction.type}
                           </h4>
-                          <p className="text-xs sm:text-sm text-gray-600 font-medium">
-                            {interaction.activity}
-                          </p>
+                          <span className="text-xs text-gray-500">
+                            {interaction.time}
+                          </span>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs sm:text-sm text-gray-500 block mb-1 sm:mb-2 font-medium">
-                          {interaction.time}
-                        </span>
+
+                        {/* Isi text */}
+                        <p className="text-sm text-gray-600">
+                          {interaction.activity}
+                        </p>
+
+                        {/* Badge emosi */}
                         <span
-                          className={`inline-flex items-center px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-bold shadow-sm ${
-                            interaction.sentiment === "Sangat Baik"
-                              ? "bg-green-100 text-green-800"
-                              : interaction.sentiment === "Baik"
-                              ? "bg-blue-200 text-blue-800"
+                          className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
+                            interaction.sentiment === "Bersyukur"
+                              ? "bg-pink-100 text-pink-700"
+                              : interaction.sentiment === "Senang"
+                              ? "bg-green-100 text-green-700"
                               : interaction.sentiment === "Biasa"
-                              ? "bg-gray-100 text-gray-800"
-                              : "bg-red-100 text-red-800"
+                              ? "bg-gray-100 text-gray-700"
+                              : interaction.sentiment === "Sedih"
+                              ? "bg-blue-100 text-blue-700"
+                              : interaction.sentiment === "Stress"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
                           }`}
                         >
                           {interaction.sentiment}

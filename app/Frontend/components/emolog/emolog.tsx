@@ -76,44 +76,41 @@ const EmologPage = () => {
     token: string;
   };
 
-  const { userId, userName = "Pengguna" } = useLoaderData<LoaderData>();
+  const { userId, userName = "Pengguna", token } = useLoaderData<LoaderData>();
   const [interactionWith, setInteractionWith] = useState("Teman");
 
   type EmologHistory = {
     id: number;
-    emotion: string;
-    note?: string;
+    emotion_label: string;
+    text_input?: string;
     interaction_with?: string;
-    activity?: string;
-    mood?: string;
-    date?: string;
-    time?: string;
+    subdistrict_id?: number;
+    recorded_at?: string;
   };
 
   const [history, setHistory] = useState<EmologHistory[]>([]);
 
   const fetchEmolog = async () => {
-  try {
-    const res = await fetch(
-      `http://localhost:5000/api/emolog-history?user_id=${userId}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/emolog-history?user_id=${userId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (!res.ok) throw new Error("Unauthorized");
+      if (!res.ok) throw new Error("Unauthorized");
 
-    const data = await res.json();
-    setHistory(Array.isArray(data) ? data : []);
-  } catch (error) {
-    console.error("Gagal fetch riwayat emosi:", error);
-    setHistory([]);
-  }
-};
-
+      const data = await res.json();
+      setHistory(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Gagal fetch riwayat emosi:", error);
+      setHistory([]);
+    }
+  };
 
   useEffect(() => {
     fetchEmolog();
@@ -126,34 +123,24 @@ const EmologPage = () => {
     }
 
     try {
-      const aiRes = await fetch("http://localhost:5000/api/emolog", {
+      const res = await fetch("http://localhost:5000/api/emolog-history", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: note }),
-      });
-      const aiData = await aiRes.json();
-      console.log("AI analysis:", aiData);
-      const payload = {
-        user_id: userId,
-        emotion: aiData.emotion || "Tidak Terdeteksi",
-        note,
-        interaction_with: interactionWith,
-        activity: "Jurnal Harian",
-        mood: aiData.mood || "Netral",
-        date: new Date().toISOString().split("T")[0],
-      };
-
-      const res = await fetch("http://localhost:5000/api/emolog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text: note,
+          subdistrict_id: 1,
+          interaction_with: interactionWith,
+        }),
       });
 
       const result = await res.json();
-      console.log("Response from server:", result);
+      console.log("Response dari server:", result);
 
       if (!res.ok) {
-        alert("Gagal menyimpan catatan 😢");
+        alert(result.error || "Gagal menyimpan catatan 😢");
       } else {
         alert("Berhasil menyimpan catatan! 💙");
         setNote("");
@@ -461,15 +448,17 @@ const EmologPage = () => {
                         <div className="flex items-center">
                           <span className="text-2xl mr-3">
                             {
-                              EMOTION_OPTIONS.find((e) => e.key === h.emotion)
-                                ?.emoji
+                              EMOTION_OPTIONS.find(
+                                (e) => e.key === h.emotion_label
+                              )?.emoji
                             }
                           </span>
                           <div>
                             <span className="font-bold text-violet-700">
                               {
-                                EMOTION_OPTIONS.find((e) => e.key === h.emotion)
-                                  ?.label
+                                EMOTION_OPTIONS.find(
+                                  (e) => e.key === h.emotion_label
+                                )?.label
                               }
                             </span>
                             {h.interaction_with && (
@@ -484,14 +473,31 @@ const EmologPage = () => {
                         </div>
                         <div className="text-right">
                           <span className="text-xs text-gray-500 font-medium">
-                            {h.date} {h.time}
+                            {h.recorded_at
+                              ? new Date(h.recorded_at).toLocaleDateString(
+                                  "id-ID",
+                                  {
+                                    day: "2-digit",
+                                    month: "long",
+                                    year: "numeric",
+                                  }
+                                ) +
+                                " " +
+                                new Date(h.recorded_at).toLocaleTimeString(
+                                  "id-ID",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )
+                              : ""}
                           </span>
                         </div>
                       </div>
 
-                      {h.note && (
+                      {h.text_input && (
                         <p className="text-sm text-gray-700 mt-2 bg-white p-3 rounded-lg border border-gray-100">
-                          "{h.note}"
+                          &quot;{h.text_input}&quot;
                         </p>
                       )}
 
