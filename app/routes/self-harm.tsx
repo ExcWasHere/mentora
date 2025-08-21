@@ -1,10 +1,10 @@
 import { json, type MetaFunction, type LoaderFunctionArgs } from "@remix-run/node";
 import { getSession } from "~/utils/session.server";
-import EmologPage from "~/Frontend/components/emolog/emolog";
+import SelfHarmTracker from "~/Frontend/components/Self-Harm/selfharm";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "MenTora | Emolog" },
+    { title: "MenTora | AloRa" },
     { name: "Greetings", content: "Welcome to MenTora!" },
   ];
 };
@@ -27,7 +27,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Index() {
   return (
     <>
-      <EmologPage />
+      <SelfHarmTracker />
     </>
   );
 }
