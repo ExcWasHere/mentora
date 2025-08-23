@@ -119,9 +119,20 @@ export async function action({ request }: ActionFunctionArgs) {
       token: user.token
     });
 
-    return redirect("/dashboard", {
-      headers: { "Set-Cookie": await commitSession(session) },
-    });
+if (user.role === "pemerintah") {
+  return redirect("/dashboard-pemerintah", {
+    headers: { "Set-Cookie": await commitSession(session) },
+  });
+} else if (user.role === "psikolog") {
+  return redirect("/dashboard-psikolog", {
+    headers: { "Set-Cookie": await commitSession(session) },
+  });
+} else {
+  return redirect("/dashboard", {
+    headers: { "Set-Cookie": await commitSession(session) },
+  });
+}
+
     
   } catch (error) {
     console.error("Login fetch error:", error);
