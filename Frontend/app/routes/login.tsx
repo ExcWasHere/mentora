@@ -89,17 +89,6 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
 
-    if (user.role === "pemerintah") {
-      const profileRes = await fetch("https://mentora-977901323224.asia-southeast2.run.app/api/", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      if (profileRes.status === 404) {
-        return redirect("/personalize-gov", {
-          headers: { "Set-Cookie": await commitSession(session) },
-        });
-      }
-    }
-
     if (user.role === "psikolog") {
       const profileRes = await fetch("https://mentora-977901323224.asia-southeast2.run.app/api/psikolog-profile", {
         headers: { Authorization: `Bearer ${user.token}` },
