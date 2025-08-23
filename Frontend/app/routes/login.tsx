@@ -50,11 +50,14 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const response = await fetch("https://mentora-977901323224.asia-southeast2.run.app/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    const response = await fetch(
+      "https://mentora-977901323224.asia-southeast2.run.app/api/auth/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
     if (!response.ok) {
       const data = await response.json();
@@ -66,9 +69,12 @@ export async function action({ request }: ActionFunctionArgs) {
     console.log("User data from API:", user);
     if (!user.id || !user.name || !user.email) {
       console.error("Incomplete user data:", user);
-      return json({ 
-        errors: { email: "Data user tidak lengkap" } 
-      }, { status: 400 });
+      return json(
+        {
+          errors: { email: "Data user tidak lengkap" },
+        },
+        { status: 400 }
+      );
     }
 
     const session = await getSession(request.headers.get("Cookie"));
@@ -77,11 +83,14 @@ export async function action({ request }: ActionFunctionArgs) {
     session.set("userName", user.name);
     session.set("role", user.role);
     session.set("token", user.token);
-    
+
     if (user.role === "user") {
-      const profileRes = await fetch("https://mentora-977901323224.asia-southeast2.run.app/api/profile", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+      const profileRes = await fetch(
+        "https://mentora-977901323224.asia-southeast2.run.app/api/profile",
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
       if (profileRes.status === 404) {
         return redirect("/personalize-user", {
           headers: { "Set-Cookie": await commitSession(session) },
@@ -90,9 +99,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     if (user.role === "pemerintah") {
-      const profileRes = await fetch("https://mentora-977901323224.asia-southeast2.run.app/api/", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+      const profileRes = await fetch(
+        "https://mentora-977901323224.asia-southeast2.run.app/api/",
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
       if (profileRes.status === 404) {
         return redirect("/personalize-gov", {
           headers: { "Set-Cookie": await commitSession(session) },
@@ -101,9 +113,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     if (user.role === "psikolog") {
-      const profileRes = await fetch("https://mentora-977901323224.asia-southeast2.run.app/api/psikolog-profile", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+      const profileRes = await fetch(
+        "https://mentora-977901323224.asia-southeast2.run.app/api/psikolog-profile",
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
       if (profileRes.status === 404) {
         return redirect("/personalize-psikolog", {
           headers: { "Set-Cookie": await commitSession(session) },
@@ -116,18 +131,30 @@ export async function action({ request }: ActionFunctionArgs) {
       userEmail: user.email,
       userName: user.name,
       role: user.role,
-      token: user.token
+      token: user.token,
     });
 
-    return redirect("/dashboard", {
-      headers: { "Set-Cookie": await commitSession(session) },
-    });
-    
+    if (user.role === "pemerintah") {
+      return redirect("/dashboard-pemerintah", {
+        headers: { "Set-Cookie": await commitSession(session) },
+      });
+    } else if (user.role === "psikolog") {
+      return redirect("/dashboard-psikolog", {
+        headers: { "Set-Cookie": await commitSession(session) },
+      });
+    } else {
+      return redirect("/dashboard", {
+        headers: { "Set-Cookie": await commitSession(session) },
+      });
+    }
   } catch (error) {
     console.error("Login fetch error:", error);
-    return json({ 
-      errors: { email: "Terjadi kesalahan koneksi" } 
-    }, { status: 500 });
+    return json(
+      {
+        errors: { email: "Terjadi kesalahan koneksi" },
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -264,9 +291,25 @@ export default function Login() {
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Memproses...
                   </div>

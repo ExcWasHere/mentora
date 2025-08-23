@@ -11,22 +11,13 @@ import {
   Menu,
   X,
   LogOut,
-  Map,
-  BarChart3,
-  PieChart,
+  Lightbulb,
+  Brain,
+  Target,
+  CheckCircle,
+  Info,
 } from "lucide-react";
 
-import {
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Cell,
-  LineChart,
-  Line,
-} from "recharts";
 
 interface DashboardPemerintahProps {
   userName?: string;
@@ -39,6 +30,7 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [animateStats, setAnimateStats] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("7d");
+  
   const mockStressData = [
     { area: "Lowokwaru", level: 85, population: 45000, color: "#ef4444" },
     { area: "Klojen", level: 72, population: 38000, color: "#f97316" },
@@ -47,20 +39,47 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
     { area: "Sukun", level: 39, population: 40000, color: "#22c55e" },
   ];
 
-  const chartData = [
-    { date: "2025-01-10", stress: 65 },
-    { date: "2025-01-11", stress: 72 },
-    { date: "2025-01-12", stress: 58 },
-    { date: "2025-01-13", stress: 84 },
-    { date: "2025-01-14", stress: 67 },
-    { date: "2025-01-15", stress: 73 },
-    { date: "2025-01-16", stress: 71 },
-  ];
-
-  const pieData = [
-    { name: "Stress Tinggi", value: 25, color: "#ef4444" },
-    { name: "Stress Sedang", value: 35, color: "#f97316" },
-    { name: "Stress Rendah", value: 40, color: "#22c55e" },
+  const aiRecommendations = [
+    {
+      id: 1,
+      priority: "high",
+      title: "Intervensi Psikolog Segera",
+      description: "Lowokwaru menunjukkan tingkat stress 85%. Rekomendasikan penambahan 3-4 psikolog komunitas.",
+      area: "Lowokwaru",
+      timeline: "1-2 minggu",
+      impact: "Menurunkan stress 15-20%",
+      icon: AlertTriangle,
+    },
+    {
+      id: 2,
+      priority: "medium",
+      title: "Kampanye Kesehatan Mental",
+      description: "Klojen memerlukan program edukasi kesehatan mental. Stress level 72% dapat diturunkan melalui awareness campaign.",
+      area: "Klojen",
+      timeline: "2-3 minggu",
+      impact: "Menurunkan stress 10-15%",
+      icon: Lightbulb,
+    },
+    {
+      id: 3,
+      priority: "medium",
+      title: "Program Olahraga Komunitas",
+      description: "Blimbing menunjukkan tren positif (58%). Pertahankan dengan program olahraga rutin di taman kota.",
+      area: "Blimbing",
+      timeline: "Ongoing",
+      impact: "Mempertahankan tren positif",
+      icon: Target,
+    },
+    {
+      id: 4,
+      priority: "low",
+      title: "Monitoring Berkelanjutan",
+      description: "Sukun dan Kedungkandang dalam kondisi baik. Lanjutkan monitoring rutin untuk mempertahankan level stress rendah.",
+      area: "Sukun, Kedungkandang",
+      timeline: "Ongoing",
+      impact: "Pertahankan kondisi optimal",
+      icon: CheckCircle,
+    },
   ];
 
   useEffect(() => {
@@ -89,7 +108,8 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
       title: "Total Penduduk",
       value: "200Rb",
       description: "Kota Malang",
-      change: "+1.2% dari bulan lalu",
+      change: "+1.2%",
+      changeDetail: "dari bulan lalu",
       changeType: "positive" as const,
       icon: Users,
       bgColor: "bg-sky-100",
@@ -98,7 +118,8 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
       title: "Tingkat Stress Rata-rata",
       value: "63.5%",
       description: "Minggu ini",
-      change: "+5.8% dari minggu lalu",
+      change: "+5.8%",
+      changeDetail: "dari minggu lalu",
       changeType: "negative" as const,
       icon: Activity,
       bgColor: "bg-red-100",
@@ -107,7 +128,8 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
       title: "Area Kritis",
       value: "2",
       description: "Memerlukan perhatian",
-      change: "Lowokwaru, Klojen",
+      change: "Lowokwaru • Klojen",
+      changeDetail: "",
       changeType: "warning" as const,
       icon: AlertTriangle,
       bgColor: "bg-orange-100",
@@ -116,7 +138,8 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
       title: "Trend Positif",
       value: "3",
       description: "Area membaik",
-      change: "Sukun, Kedungkandang, Blimbing",
+      change: "Sukun • Kedungkandang • Blimbing",
+      changeDetail: "",
       changeType: "positive" as const,
       icon: TrendingUp,
       bgColor: "bg-green-100",
@@ -165,7 +188,7 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
         </div>
         <div className="text-right">
           <div
-            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full mb-1 ${
               card.changeType === "positive"
                 ? "text-green-700 bg-green-100"
                 : card.changeType === "negative"
@@ -177,37 +200,104 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
           >
             {card.change}
           </div>
+          {card.changeDetail && (
+            <div className="text-xs text-gray-500 font-medium">
+              {card.changeDetail}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 
-  const HeatmapPlaceholder = () => (
-    <div className="w-full h-96 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-200 shadow-inner relative overflow-hidden">
-      <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-        <div className="text-center p-8">
-          <Map className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-600 mb-2">Heatmap Kota Malang</h3>
-          <div className="text-sm text-gray-400">
-            <div className="flex justify-center space-x-4 mb-2">
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-                <span>Stress Tinggi (70-100%)</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-orange-500 rounded mr-2"></div>
-                <span>Stress Sedang (40-70%)</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                <span>Stress Rendah (0-40%)</span>
-              </div>
+  const MalangHeatmap = () => (
+  <div className="w-full h-96 rounded-2xl border-2 border-blue-200 shadow-lg overflow-hidden">
+    <iframe
+      title="Peta Kota Malang"
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3959.331546281711!2d112.619369!3d-7.966622!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7882673a4f1d8d%3A0x9a81e39c6a4b9f1!2sMalang%2C%20Kota%20Malang%2C%20Jawa%20Timur!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+      width="100%"
+      height="100%"
+      style={{ border: 0 }}
+      allowFullScreen
+      loading="lazy"
+    ></iframe>
+  </div>
+);
+
+
+  const AIRecommendationCard = ({ recommendation, index }: { recommendation: typeof aiRecommendations[0], index: number }) => {
+    const getPriorityColor = (priority: string) => {
+      switch (priority) {
+        case 'high': return 'bg-red-50 border-red-200';
+        case 'medium': return 'bg-orange-50 border-orange-200';
+        case 'low': return 'bg-green-50 border-green-200';
+        default: return 'bg-gray-50 border-gray-200';
+      }
+    };
+
+    const getPriorityBadgeColor = (priority: string) => {
+      switch (priority) {
+        case 'high': return 'bg-red-100 text-red-700';
+        case 'medium': return 'bg-orange-100 text-orange-700';
+        case 'low': return 'bg-green-100 text-green-700';
+        default: return 'bg-gray-100 text-gray-700';
+      }
+    };
+
+    const getPriorityText = (priority: string) => {
+      switch (priority) {
+        case 'high': return 'Prioritas Tinggi';
+        case 'medium': return 'Prioritas Sedang';
+        case 'low': return 'Prioritas Rendah';
+        default: return 'Normal';
+      }
+    };
+
+    return (
+      <div
+        className={`${getPriorityColor(recommendation.priority)} rounded-2xl p-6 border-2 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 transform ${
+          animateStats ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        }`}
+        style={{ transitionDelay: `${index * 150}ms` }}
+      >
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-violet-600 rounded-xl flex items-center justify-center shadow-md">
+              <recommendation.icon className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-800 text-lg mb-1">{recommendation.title}</h4>
+              <span className={`text-xs px-3 py-1 rounded-full font-semibold ${getPriorityBadgeColor(recommendation.priority)}`}>
+                {getPriorityText(recommendation.priority)}
+              </span>
             </div>
           </div>
         </div>
+        
+        <p className="text-gray-700 text-sm mb-4 leading-relaxed">
+          {recommendation.description}
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-white/60 rounded-lg p-3">
+            <div className="text-xs text-gray-500 font-medium mb-1">Target Area</div>
+            <div className="text-sm font-bold text-gray-800">{recommendation.area}</div>
+          </div>
+          <div className="bg-white/60 rounded-lg p-3">
+            <div className="text-xs text-gray-500 font-medium mb-1">Timeline</div>
+            <div className="text-sm font-bold text-gray-800">{recommendation.timeline}</div>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="bg-white/80 rounded-lg px-4 py-2">
+            <div className="text-xs text-gray-500 font-medium mb-1">Estimasi Dampak</div>
+            <div className="text-sm font-bold text-violet-700">{recommendation.impact}</div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -379,7 +469,7 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
                 </button>
               </div>
             </div>
-            <HeatmapPlaceholder />
+            <MalangHeatmap />
           </div>
 
           {/* Area Details */}
@@ -436,6 +526,56 @@ const DashboardPemerintah = ({ userName = "Admin Pemerintah" }: DashboardPemerin
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* AI Recommendations Section */}
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-100 mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-6 sm:mb-8">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    Rekomendasi AI
+                  </h3>
+                  <p className="text-sm text-gray-600 font-medium">
+                    Sistem Pendukung Keputusan untuk Kebijakan Kesehatan Mental Masyarakat
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="bg-sky-100 text-violet-700 px-4 py-2 rounded-xl font-semibold text-sm">
+                  4 Rekomendasi Aktif
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {aiRecommendations.map((recommendation, index) => (
+                <AIRecommendationCard 
+                  key={recommendation.id} 
+                  recommendation={recommendation} 
+                  index={index} 
+                />
+              ))}
+            </div>
+            
+            {/* AI Insights Summary */}
+            <div className="mt-8 bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl p-6 border border-violet-200">
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-violet-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Info className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Insight AI System</h4>
+                  <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                    Berdasarkan analisis data real-time, sistem AI mendeteksi peningkatan stress signifikan di area Lowokwaru dan Klojen. 
+                    Implementasi rekomendasi prioritas tinggi dapat menurunkan rata-rata stress kota hingga 12-18% dalam 3-4 minggu.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
