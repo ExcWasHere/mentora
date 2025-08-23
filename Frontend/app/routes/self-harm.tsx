@@ -4,7 +4,7 @@ import SelfHarmTracker from "../components/Self-Harm/selfharm";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "MenTora | AloRa" },
+    { title: "MenTora | SH-Tracker" },
     { name: "Greetings", content: "Welcome to MenTora!" },
   ];
 };
